@@ -69,7 +69,7 @@ function Navbar({ onWebhookSelect, onNewChat, onDelayChange, currentDelay }) {
     { id: 51, name: 'Gen', url: 'https', category: 'Generation 13' },
   ];
 
-  const delayOptions = [5, 8, 10, 15]; // Opsi delay dalam detik
+  const delayOptions = [3.5, 5, 6, 7]; // Opsi delay dalam detik
 
   const webhookDropdownRef = useRef(null);
   const delayDropdownRef = useRef(null);
