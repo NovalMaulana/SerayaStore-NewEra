@@ -8,11 +8,20 @@ const app = express();
 app.use(express.json({ limit: '200mb' }));
 app.use(cors());
 
-// Inisialisasi GoogleAuth
-const auth = new GoogleAuth({
-  keyFile: './service-account.json',
-  scopes: ['https://www.googleapis.com/auth/drive'],
-});
+// Inisialisasi GoogleAuth dengan credentials dari environment variable
+let auth;
+if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+  const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+  auth = new GoogleAuth({
+    credentials,
+    scopes: ['https://www.googleapis.com/auth/drive'],
+  });
+} else {
+  auth = new GoogleAuth({
+    keyFile: './service-account.json',
+    scopes: ['https://www.googleapis.com/auth/drive'],
+  });
+}
 
 // Inisialisasi Drive dengan auth
 const drive = new drive_v3.Drive({ auth });
