@@ -9,9 +9,17 @@ const app = express();
 app.use(express.json({ limit: '200mb' }));
 app.use(cors());
 
-// Validasi environment variable
-if (!process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
-  throw new Error('GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable tidak ditemukan');
+// Validasi environment variables yang diperlukan
+const requiredEnvVars = [
+  'GOOGLE_CLIENT_EMAIL',
+  'GOOGLE_PRIVATE_KEY',
+  'GOOGLE_PROJECT_ID'
+];
+
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingEnvVars.length > 0) {
+  throw new Error(`Environment variable berikut tidak ditemukan: ${missingEnvVars.join(', ')}`);
 }
 
 // Inisialisasi autentikasi Google
@@ -19,15 +27,12 @@ let auth;
 let drive;
 
 try {
-  const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
-  
-  // Validasi kredensial yang diperlukan
-  const requiredFields = ['client_email', 'private_key', 'project_id'];
-  const missingFields = requiredFields.filter(field => !credentials[field]);
-  
-  if (missingFields.length > 0) {
-    throw new Error(`Kredensial tidak lengkap. Field yang hilang: ${missingFields.join(', ')}`);
-  }
+  // Buat objek credentials dari environment variables terpisah
+  const credentials = {
+    client_email: process.env.GOOGLE_CLIENT_EMAIL,
+    private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'), // Handle escaped newlines
+    project_id: process.env.GOOGLE_PROJECT_ID
+  };
 
   auth = new GoogleAuth({
     credentials,
