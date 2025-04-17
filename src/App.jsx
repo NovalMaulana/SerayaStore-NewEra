@@ -251,108 +251,9 @@ function App() {
     }
   };
 
-  async function getOrCreateFolder(folderName) {
-    try {
-      console.log('Searching for folder:', folderName);
-      const response = await drive.files.list({
-        q: folderName, // Tanpa tanda kutip, biarkan API menangani
-        fields: 'files(id, name, mimeType, trashed)',
-        spaces: 'drive',
-      });
-  
-      console.log('API response:', JSON.stringify(response.data, null, 2));
-  
-      const folder = response.data.files.find(
-        file => file.name === folderName && 
-                file.mimeType === 'application/vnd.google-apps.folder' && 
-                !file.trashed
-      );
-  
-      if (folder) {
-        console.log('Folder found:', folder);
-        return folder.id;
-      }
-  
-      const folderMetadata = {
-        name: folderName,
-        mimeType: 'application/vnd.google-apps.folder',
-      };
-      const newFolder = await drive.files.create({
-        resource: folderMetadata,
-        fields: 'id',
-      });
-      console.log('New folder created:', newFolder.data);
-      return newFolder.data.id;
-    } catch (error) {
-      console.error('Error in getOrCreateFolder:', error.message, error.stack);
-      throw new Error(`Failed to get or create folder: ${error.message}`);
-    }
-  }
-
   async function backupImagesToDrive() {
-    if (!selectedWebhookUrl) {
-      alert('Please select a webhook first');
-      return;
-    }
-  
-    // Filter hanya draft yang memiliki originalMessage yang valid
-    const imageDrafts = drafts.filter(
-      draft => draft.type === 'image' && 
-               typeof draft.originalMessage === 'string' && 
-               draft.originalMessage.length > 0
-    );
-    if (imageDrafts.length === 0) {
-      alert('No valid images to backup');
-      return;
-    }
-  
-    setIsBackingUp(true);
-    setBackupProgress({ backedUp: 0, total: imageDrafts.length });
-  
-    try {
-      // Kelompokkan gambar berdasarkan webhookName
-      const groupedImages = imageDrafts.reduce((acc, draft) => {
-        const { webhookName } = draft;
-        if (!acc[webhookName]) {
-          acc[webhookName] = [];
-        }
-        acc[webhookName].push({
-          id: draft.id,
-          dataURL: draft.originalMessage, // Gunakan versi tanpa watermark
-        });
-        return acc;
-      }, {});
-  
-      // Kirimkan permintaan terpisah untuk setiap webhook
-      let backedUpCount = 0;
-      for (const [webhookName, images] of Object.entries(groupedImages)) {
-        console.log(`Backing up ${images.length} images to folder "${webhookName}"`);
-        const response = await fetch('https://srybc-kiwkiw.vercel.app/backup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            folderName: webhookName,
-            images,
-          }),
-        });
-  
-        const result = await response.json();
-        if (!response.ok) {
-          throw new Error(result.details || 'Backup failed');
-        }
-  
-        backedUpCount += images.length;
-        setBackupProgress({ backedUp: backedUpCount, total: imageDrafts.length });
-      }
-  
-      alert(`Successfully backed up ${imageDrafts.length} images to Google Drive!`);
-    } catch (error) {
-      console.error('Error backing up images:', error);
-      alert(`Failed to backup images: ${error.message}`);
-    } finally {
-      setIsBackingUp(false);
-      setBackupProgress({ backedUp: 0, total: 0 });
-    }
+    alert('Backup functionality has been disabled');
+    return;
   }
 
   const cleanOldIds = (ids) => {
@@ -1436,12 +1337,8 @@ function App() {
         <div className="flex space-x-4">
           <button
             onClick={backupImagesToDrive}
-            disabled={isBackingUp || drafts.length === 0 || !selectedWebhookUrl}
-            className={`bg-[#6366F1] text-white px-8 py-3 rounded-full font-medium transition-all duration-300 shadow-sm inline-flex items-center space-x-2 ${
-              isBackingUp || drafts.length === 0 || !selectedWebhookUrl
-                ? 'opacity-50 cursor-not-allowed bg-gray-600'
-                : 'hover:bg-[#4F46E5] hover:shadow-md active:transform active:scale-95'
-            }`}
+            disabled={true}
+            className="opacity-50 cursor-not-allowed bg-gray-600 text-white px-8 py-3 rounded-full font-medium transition-all duration-300 shadow-sm inline-flex items-center space-x-2"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -1452,17 +1349,7 @@ function App() {
             >
               <path d="M30.418,6H18.582c-0.724,0-1.392,0.391-1.745,1.023L3.423,30.988c-0.359,0.642-0.337,1.429,0.057,2.05l6.38,10.035 C10.228,43.65,10.864,44,11.548,44h25.903c0.684,0,1.321-0.35,1.688-0.927l6.38-10.035c0.395-0.621,0.417-1.408,0.057-2.05 L32.163,7.023C31.809,6.391,31.142,6,30.418,6z M30.41,8L43.3,31H32.61L20.65,8H30.41z M30.35,31H18.47l5.98-11.34L30.35,31z M5.16,31.97L18.49,8.19l4.84,9.31L10.92,41.01L5.16,31.97z M37.45,42H12.66l4.75-9h25.77L37.45,42z" />
             </svg>
-            <span>
-              {isBackingUp
-                ? 'Backing Up...'
-                : drafts.length === 0
-                ? 'No Drafts'
-                : !selectedWebhookUrl
-                ? 'Select Webhook'
-                : 'Backup'}
-              {drafts.length > 0 && !isBackingUp && selectedWebhookUrl &&
-                ` (${drafts.filter(d => d.type === 'image').length})`}
-            </span>
+            <span>Backup Disabled</span>
           </button>
           <button
             onClick={handleSendClick}
@@ -1486,20 +1373,6 @@ function App() {
             </span>
           </button>
         </div>
-        {isBackingUp && (
-          <div className="w-64">
-            <div className="text-[#9CA3AF] text-sm mb-1 flex items-center space-x-2">
-              <Clock size={16} />
-              <span>Backing up {backupProgress.backedUp} of {backupProgress.total} images...</span>
-            </div>
-            <div className="w-full bg-[#404040] rounded-full h-2.5">
-              <div
-                className="bg-[#6366F1] h-2.5 rounded-full transition-all duration-300"
-                style={{ width: `${(backupProgress.backedUp / backupProgress.total) * 100}%` }}
-              ></div>
-            </div>
-          </div>
-        )}
         {isSending && (
           <div className="w-64">
             <div className="text-[#9CA3AF] text-sm mb-1 flex items-center space-x-2">
