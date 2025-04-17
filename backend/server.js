@@ -1,6 +1,4 @@
 const express = require('express');
-const { drive_v3 } = require('@googleapis/drive');
-const { GoogleAuth } = require('google-auth-library');
 const cors = require('cors');
 const { Readable } = require('stream');
 const { google } = require('googleapis');
@@ -27,42 +25,27 @@ let auth;
 let drive;
 
 try {
-  // Buat objek credentials dari environment variables terpisah
-  const privateKey = process.env.GOOGLE_PRIVATE_KEY
-    .replace(/\\n/g, '\n')
-    .replace(/["']/g, '')
-    .trim();
-
+  // Gunakan JSON credentials langsung
   const credentials = {
-    type: 'service_account',
-    project_id: process.env.GOOGLE_PROJECT_ID,
-    private_key_id: 'b126cef6993649f1c611e44828988c79bd369550',
-    private_key: privateKey,
-    client_email: process.env.GOOGLE_CLIENT_EMAIL,
-    client_id: '116761857650894053624',
-    auth_uri: 'https://accounts.google.com/o/oauth2/auth',
-    token_uri: 'https://oauth2.googleapis.com/token',
-    auth_provider_x509_cert_url: 'https://www.googleapis.com/oauth2/v1/certs',
-    client_x509_cert_url: 'https://www.googleapis.com/robot/v1/metadata/x509/serayastore%40webhookbackuo.iam.gserviceaccount.com'
+    "type": "service_account",
+    "project_id": "webhookbackuo",
+    "private_key_id": "b126cef6993649f1c611e44828988c79bd369550",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC3uhiH6AAKlR77\nffKisJmxffoSLaAOjFPaU2N4dQ+KhBAPqZWkCL7rD5apVvS0ETe6nfMDxPA/ULXO\nPfdiw/7cPWVqrbS8FkIxCSBddTKcpB3gt5pfZRGWE7gJxZPM6HfrSXn5Rgua3OiC\nksnRzEhIZYd6A/qnGsa514jgmJPWM0J/dJQE6GqLi+KVFFYdmyEM0wix3ux2CKim\niR92+gfmdYt++2dEvXDaAXWtnUketpuQRrZshxgOchK5t9PBcEeKemdhdquo2HJr\n+C8JfsPob6MVSAlGSOc8Y8O4bl2Wdb0JqW5pu8s290O1vl4itS7Fu+RfUl5Bo2uF\ncP33HQkXAgMBAAECggEAKpVxlh6J0+oYUkYw9NBl7yO50HjOvlB8JwBo78SCI6LU\nbizqSCjWx3jHfNxwv0O2XQS7DMaawLIeUX0/V58B9V4toXo9h9LI6MCqxb6iSngn\njKxBlZbBar2LTIiE51uCYACZytMXYX+OTKVlLcFhh5YwvnEpqY2lPfHdAeGbcmvu\nZwgO4eJtwQ5jB4MIPU5e6vkccf4eQ5qui5DNk/sTvkYpWvIA9aFwi0kRblEh/Tn7\nxeEihXf1uNh7VjhmDQbNnD9InxnbMFIekRHsrQwfjGqlO3KpNJ15mY0hFYWa91yy\nns8SWcMy7loqyygmY8fE7mtqFOAiKH6JYAuW23cgEQKBgQDmhnkV4weEW5lQu2JL\ntqkmkSzfwY2vVei09nYWe2OAFxJOYN9XiggYG656JRakyEnZggqshHASPbAXJgpR\n9RSV12+SA23Bwk/zwogZ/cbC+JW18zHrmWtlHkG/NRu2g6yneG9ySGhCJbgvLSmT\nR8fIUmI5vsze7/ZyetyonaweLQKBgQDMB7ROZ7IwLnZK97FwJ/ANrElxhhC4bZmP\n4QbqS/d5h4+aQ27ycdQVfKuviSgoZKY+iRzagVhCGkSXhkRfSulIr7C4vn6T6Zy0\nIkRV6ghZghmahGjjRjfFNbcOeqYRVVPajkP55DlmumZ2sqoi3R2WnSPuGjKpz+2X\nFKzSnkUS0wKBgBl1pI3cQwpFK4uVBmgiRlAyHGih8cn5jPffeG9HNVgCNE1fuYrr\nfbVb6UsoKXYNgMp66D7haZc6JOaJlv4yORHLd1EC++44Tag4RdvJAVirJ62urEa+\n7POAAfbiIKtpo3njfTt777fOfqcHL95KQTBImPyTrAC7M9a05wXgVBAJAoGALPuR\n3CtulMLZn8OmYjTb7xfKBXZqX08CqT8SmDtxb2Dc30T4xAkmmionbAcQTH+MS4NN\nUjtsKv7Bmqqmjl/kuPrLOp/9Jj0+KFTZvhtgBePyIygIO/tyNk+WcWHHFVE7sJbn\nE8Qmh6iXCJpxekhHyroQfuFVxCyslD+hrrnoPrMCgYEA4T5rSjq9pEOZxMfhWSXZ\nqrLaOUbqevf2/a0fh/bsn6i5BD+q2Xei+P4xn2i4axf1dZLpAikANp6s/iUu9LWD\n+uow08zVYItD+ub6U55kv1vfR5kzjVNIWXMSsnGRGNsG95rKI0obQ80yi9XKcBCy\nuMEtL0atx5KRfu6Wr/IuhWA=\n-----END PRIVATE KEY-----\n",
+    "client_email": "serayastore@webhookbackuo.iam.gserviceaccount.com",
+    "client_id": "116761857650894053624",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/serayastore%40webhookbackuo.iam.gserviceaccount.com",
+    "universe_domain": "googleapis.com"
   };
 
-  // Debug log untuk memeriksa format private key
-  console.log('Private key starts with:', privateKey.substring(0, 50));
-  console.log('Private key ends with:', privateKey.substring(privateKey.length - 50));
-
-  // Validasi credentials
-  if (!credentials.client_email || !credentials.private_key || !credentials.project_id) {
-    throw new Error('Environment variables tidak lengkap. Pastikan GOOGLE_CLIENT_EMAIL, GOOGLE_PRIVATE_KEY, dan GOOGLE_PROJECT_ID sudah diatur.');
-  }
-
-  auth = new GoogleAuth({
-    credentials,
+  auth = new google.auth.GoogleAuth({
+    credentials: credentials,
     scopes: ['https://www.googleapis.com/auth/drive.file']
   });
 
-  // Inisialisasi Drive dengan auth
-  drive = new drive_v3.Drive({ auth });
-  
+  drive = google.drive({ version: 'v3', auth });
   console.log('Google Drive API berhasil diinisialisasi');
 } catch (error) {
   console.error('Error saat inisialisasi Google Auth:', error);
