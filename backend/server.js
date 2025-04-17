@@ -9,23 +9,30 @@ const app = express();
 app.use(express.json({ limit: '200mb' }));
 app.use(cors());
 
-// Fungsi untuk memformat private key
-function formatPrivateKey(key) {
-  if (!key) return null;
-  // Hapus karakter newline yang tidak diinginkan
-  const cleanKey = key.replace(/\\n/g, '\n');
-  return cleanKey.includes('BEGIN PRIVATE KEY') ? cleanKey : `-----BEGIN PRIVATE KEY-----\n${cleanKey}\n-----END PRIVATE KEY-----\n`;
+// Fungsi untuk memformat private key dari base64
+function getPrivateKeyFromBase64() {
+  try {
+    if (!process.env.GOOGLE_PRIVATE_KEY_BASE64) {
+      throw new Error('GOOGLE_PRIVATE_KEY_BASE64 environment variable is not set');
+    }
+    
+    const privateKey = Buffer.from(process.env.GOOGLE_PRIVATE_KEY_BASE64, 'base64').toString('utf8');
+    console.log('Private key decoded successfully:', {
+      hasBeginMarker: privateKey.includes('BEGIN PRIVATE KEY'),
+      hasEndMarker: privateKey.includes('END PRIVATE KEY'),
+      length: privateKey.length
+    });
+    return privateKey;
+  } catch (error) {
+    console.error('Error decoding private key:', error);
+    throw error;
+  }
 }
 
 // Inisialisasi GoogleAuth dengan credentials dari environment variable
 let auth;
 try {
-  const privateKey = formatPrivateKey(process.env.GOOGLE_PRIVATE_KEY);
-  console.log('Private key format check:', {
-    hasBeginMarker: privateKey?.includes('BEGIN PRIVATE KEY'),
-    hasEndMarker: privateKey?.includes('END PRIVATE KEY'),
-    length: privateKey?.length
-  });
+  const privateKey = getPrivateKeyFromBase64();
 
   const credentials = {
     type: 'service_account',
