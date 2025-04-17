@@ -34,6 +34,17 @@ try {
     project_id: process.env.GOOGLE_PROJECT_ID
   };
 
+  // Validasi credentials
+  if (!credentials.client_email || !credentials.private_key || !credentials.project_id) {
+    throw new Error('Environment variables tidak lengkap. Pastikan GOOGLE_CLIENT_EMAIL, GOOGLE_PRIVATE_KEY, dan GOOGLE_PROJECT_ID sudah diatur.');
+  }
+
+  // Pastikan private key memiliki format yang benar
+  if (!credentials.private_key.includes('-----BEGIN PRIVATE KEY-----') || 
+      !credentials.private_key.includes('-----END PRIVATE KEY-----')) {
+    throw new Error('Format private key tidak valid. Pastikan private key memiliki header dan footer yang benar.');
+  }
+
   auth = new GoogleAuth({
     credentials,
     scopes: ['https://www.googleapis.com/auth/drive.file']
