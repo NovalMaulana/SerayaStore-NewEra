@@ -9,14 +9,29 @@ const app = express();
 app.use(express.json({ limit: '200mb' }));
 app.use(cors());
 
+// Fungsi untuk memformat private key
+function formatPrivateKey(key) {
+  if (!key) return null;
+  // Hapus karakter newline yang tidak diinginkan
+  const cleanKey = key.replace(/\\n/g, '\n');
+  return cleanKey.includes('BEGIN PRIVATE KEY') ? cleanKey : `-----BEGIN PRIVATE KEY-----\n${cleanKey}\n-----END PRIVATE KEY-----\n`;
+}
+
 // Inisialisasi GoogleAuth dengan credentials dari environment variable
 let auth;
 try {
+  const privateKey = formatPrivateKey(process.env.GOOGLE_PRIVATE_KEY);
+  console.log('Private key format check:', {
+    hasBeginMarker: privateKey?.includes('BEGIN PRIVATE KEY'),
+    hasEndMarker: privateKey?.includes('END PRIVATE KEY'),
+    length: privateKey?.length
+  });
+
   const credentials = {
     type: 'service_account',
     project_id: 'webhookbackuo',
     private_key_id: 'b126cef6993649f1c611e44828988c79bd369550',
-    private_key: process.env.GOOGLE_PRIVATE_KEY,
+    private_key: privateKey,
     client_email: 'serayastore@webhookbackuo.iam.gserviceaccount.com',
     client_id: '116761857650894053624',
     auth_uri: 'https://accounts.google.com/o/oauth2/auth',
