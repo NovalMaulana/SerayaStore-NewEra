@@ -29,20 +29,21 @@ let drive;
 try {
   // Buat objek credentials dari environment variables terpisah
   const credentials = {
+    type: 'service_account',
+    project_id: process.env.GOOGLE_PROJECT_ID,
+    private_key_id: 'b126cef6993649f1c611e44828988c79bd369550',
+    private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
     client_email: process.env.GOOGLE_CLIENT_EMAIL,
-    private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'), // Handle escaped newlines
-    project_id: process.env.GOOGLE_PROJECT_ID
+    client_id: '116761857650894053624',
+    auth_uri: 'https://accounts.google.com/o/oauth2/auth',
+    token_uri: 'https://oauth2.googleapis.com/token',
+    auth_provider_x509_cert_url: 'https://www.googleapis.com/oauth2/v1/certs',
+    client_x509_cert_url: 'https://www.googleapis.com/robot/v1/metadata/x509/serayastore%40webhookbackuo.iam.gserviceaccount.com'
   };
 
   // Validasi credentials
   if (!credentials.client_email || !credentials.private_key || !credentials.project_id) {
     throw new Error('Environment variables tidak lengkap. Pastikan GOOGLE_CLIENT_EMAIL, GOOGLE_PRIVATE_KEY, dan GOOGLE_PROJECT_ID sudah diatur.');
-  }
-
-  // Pastikan private key memiliki format yang benar
-  if (!credentials.private_key.includes('-----BEGIN PRIVATE KEY-----') || 
-      !credentials.private_key.includes('-----END PRIVATE KEY-----')) {
-    throw new Error('Format private key tidak valid. Pastikan private key memiliki header dan footer yang benar.');
   }
 
   auth = new GoogleAuth({
