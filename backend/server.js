@@ -10,13 +10,21 @@ app.use(cors());
 
 // Inisialisasi GoogleAuth dengan credentials dari environment variable
 let auth;
+console.log('Checking for GOOGLE_APPLICATION_CREDENTIALS_JSON:', !!process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
 if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
-  const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
-  auth = new GoogleAuth({
-    credentials,
-    scopes: ['https://www.googleapis.com/auth/drive'],
-  });
+  try {
+    const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+    console.log('Successfully parsed credentials from environment variable');
+    auth = new GoogleAuth({
+      credentials,
+      scopes: ['https://www.googleapis.com/auth/drive'],
+    });
+  } catch (error) {
+    console.error('Error parsing credentials from environment variable:', error);
+    throw error;
+  }
 } else {
+  console.log('Using keyFile instead of environment variable');
   auth = new GoogleAuth({
     keyFile: './service-account.json',
     scopes: ['https://www.googleapis.com/auth/drive'],
