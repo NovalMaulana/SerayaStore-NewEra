@@ -327,7 +327,7 @@ function App() {
       let backedUpCount = 0;
       for (const [webhookName, images] of Object.entries(groupedImages)) {
         console.log(`Backing up ${images.length} images to folder "${webhookName}"`);
-        const response = await fetch('http://localhost:3001/backup', {
+        const response = await fetch('https://srybc-kiwkiw.vercel.app/backup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
