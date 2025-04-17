@@ -3,6 +3,7 @@ const { drive_v3 } = require('@googleapis/drive');
 const { GoogleAuth } = require('google-auth-library');
 const cors = require('cors');
 const { Readable } = require('stream');
+const path = require('path');
 const app = express();
 
 app.use(express.json({ limit: '200mb' }));
@@ -11,8 +12,11 @@ app.use(cors());
 // Inisialisasi GoogleAuth dengan file service-account.json
 let auth;
 try {
+  const serviceAccountPath = path.join(__dirname, 'service-account.json');
+  console.log('Service account path:', serviceAccountPath);
+  
   auth = new GoogleAuth({
-    keyFile: './service-account.json',
+    keyFile: serviceAccountPath,
     scopes: ['https://www.googleapis.com/auth/drive'],
   });
   console.log('Successfully initialized GoogleAuth with service account file');
