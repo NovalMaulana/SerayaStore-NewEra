@@ -9,17 +9,28 @@ const app = express();
 app.use(express.json({ limit: '200mb' }));
 app.use(cors());
 
-// Inisialisasi GoogleAuth dengan file service-account.json
+// Inisialisasi GoogleAuth dengan credentials dari environment variable
 let auth;
 try {
-  const serviceAccountPath = path.join(__dirname, 'service-account.json');
-  console.log('Service account path:', serviceAccountPath);
-  
+  const credentials = {
+    type: 'service_account',
+    project_id: 'webhookbackuo',
+    private_key_id: 'b126cef6993649f1c611e44828988c79bd369550',
+    private_key: process.env.GOOGLE_PRIVATE_KEY,
+    client_email: 'serayastore@webhookbackuo.iam.gserviceaccount.com',
+    client_id: '116761857650894053624',
+    auth_uri: 'https://accounts.google.com/o/oauth2/auth',
+    token_uri: 'https://oauth2.googleapis.com/token',
+    auth_provider_x509_cert_url: 'https://www.googleapis.com/oauth2/v1/certs',
+    client_x509_cert_url: 'https://www.googleapis.com/robot/v1/metadata/x509/serayastore%40webhookbackuo.iam.gserviceaccount.com',
+    universe_domain: 'googleapis.com'
+  };
+
   auth = new GoogleAuth({
-    keyFile: serviceAccountPath,
+    credentials,
     scopes: ['https://www.googleapis.com/auth/drive'],
   });
-  console.log('Successfully initialized GoogleAuth with service account file');
+  console.log('Successfully initialized GoogleAuth with credentials');
 } catch (error) {
   console.error('Error initializing GoogleAuth:', error);
   throw error;
