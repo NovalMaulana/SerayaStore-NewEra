@@ -220,14 +220,14 @@ function App() {
     'Reggie': 'https://discord.com/api/webhooks/1298894153710702623/XZREV-5yW7AXSctcVSJEjLxWSNNvfO9gJepPOvJmC92rUqbDPKd_gXrCnCQcYv8JA8cF',
     'Ribka': 'https://discord.com/api/webhooks/1298528906474946631/Nj5nLuBGxYJVgSZYt7B78hld0NMVZwpv4T__2LsA1ZygMoyxYsmsLMqXRabvL3WUDi37',
     'Trisha': 'https://discord.com/api/webhooks/1298527442448945234/9uOXWjrJfLs-CZ7VWWnublbKaS_zjCFQXHLbLlRyOnLZkvzO5-3WHeMzUNi2nP7vQ0zZ',
-    'Aprili': 'https://discord.com/api/webhooks/1362451593072480417/bIZfGVniztyBtyyvLCOMqw88pYZXZmy-VXXS5h_bPbu9DuntDokUIRz1sgzVJgsyx1iq',
+    'Rilly': 'https://discord.com/api/webhooks/1362451593072480417/bIZfGVniztyBtyyvLCOMqw88pYZXZmy-VXXS5h_bPbu9DuntDokUIRz1sgzVJgsyx1iq',
     'Auwia': 'https://discord.com/api/webhooks/1362451834261737647/SmpSiztQ87WO_7ZFAhvLV6VfO10rMFpnPZVaccbsXSCaDgPyD9_lz2x9EeiKN_2HXJrI',
     'Ekin': 'https://discord.com/api/webhooks/1362451928860201142/BPDUQ4v22K-l-lMTLgsam13_kuhz05V7YYn6K0dOQMIVtFHACgqXhJ9RZO5ojjulvfAZ',
     'Intan': 'https://discord.com/api/webhooks/1362452037547196477/AI_eFae1HKiS5kXPgyemxTfnmiqn9R9zJuNfyTZ0Kltb_5D5GVewB76N1-27UeoJu27j',
     'Jemima': 'https://discord.com/api/webhooks/1362452132132819126/y9pZ_8QKUtfilMkgkEDsrQYoyTPiAJwRVwpByCLFNWAuWJtnQAaU-qLNmL6En-ESKKSZ',
     'Maira': 'https://discord.com/api/webhooks/1362452227507224616/QpGw6xNMEWPqBPNzofyVHJMaJOQkJ9WjFcHF3ogYOEvhasKLpyNABDmTusX8fpYgPIZW',
     'Mikaela': 'https://discord.com/api/webhooks/1362452311334584473/zcVELeDgrUJoUECZ4LK8gapNziyhMG52_867-v1bffMZTK16l204pj5S2IPW4zAi_ZrA',
-    'Hagia': 'https://discord.com/api/webhooks/1362452395682168973/6VjsYUB5NLloS2gSdZmk113_azQ8XykdNSdWCI-liXbQRMjPK-FNt30Q76tqMVKWjWMN',
+    'Giaa': 'https://discord.com/api/webhooks/1362452395682168973/6VjsYUB5NLloS2gSdZmk113_azQ8XykdNSdWCI-liXbQRMjPK-FNt30Q76tqMVKWjWMN',
     'Virgi': 'https://discord.com/api/webhooks/1362452475814350968/XjsIcFyIYuWruRlZ_SF-yiJs2WV75-GYSNRZZMAst7xzb7fMTF8td3KOE94U8J9OoEBM',
   };
 
@@ -357,77 +357,22 @@ function App() {
   
         // Gambar asli sebagai dasar
         ctx.drawImage(img, 0, 0);
-  
-        // 1. Tambahkan watermark tak terlihat berbasis DCT dengan pola yang lebih kompleks
+
+        // 1. Buat gambar lebih gelap
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = imageData.data;
-  
-        // Fungsi untuk mendapatkan warna piksel lokal
-        const getPixelColor = (x, y) => {
-          const index = (Math.floor(y) * canvas.width + Math.floor(x)) * 4;
-          return {
-            r: data[index],
-            g: data[index + 1],
-            b: data[index + 2],
-            intensity: (data[index] + data[index + 1] + data[index + 2]) / 3
-          };
-        };
-  
-        // Pola DCT yang lebih kompleks dengan multiple frekuensi
-        const blockSize = 8;
-        const watermarkStrength = 8;
-        for (let y = 0; y < canvas.height; y += blockSize) {
-          for (let x = 0; x < canvas.width; x += blockSize) {
-            for (let by = 0; by < blockSize; by++) {
-              for (let bx = 0; bx < blockSize; bx++) {
-                const px = x + bx;
-                const py = y + by;
-                if (px < canvas.width && py < canvas.height) {
-                  const index = (py * canvas.width + px) * 4;
-                  // Gunakan multiple sinusoidal patterns
-                  const freqMod = (
-                    Math.sin((bx + by) * 0.5) * 0.4 +
-                    Math.cos((bx - by) * 0.3) * 0.3 +
-                    Math.sin((bx * by) * 0.2) * 0.3
-                  ) * watermarkStrength;
-                  
-                  // Modifikasi setiap channel warna secara berbeda
-                  data[index] = Math.min(255, Math.max(0, data[index] + freqMod * 1.2));
-                  data[index + 1] = Math.min(255, Math.max(0, data[index + 1] + freqMod * 0.8));
-                  data[index + 2] = Math.min(255, Math.max(0, data[index + 2] + freqMod * 0.6));
-                }
-              }
-            }
-          }
-        }
-  
-        // 2. Tambahkan noise pattern yang halus
+        const darkenFactor = 0.7; // Semakin kecil semakin gelap (0-1)
+
         for (let i = 0; i < data.length; i += 4) {
-          const noise = (Math.random() - 0.5) * 3;
-          data[i] = Math.min(255, Math.max(0, data[i] + noise));
-          data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise));
-          data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise));
+          data[i] = data[i] * darkenFactor;     // R
+          data[i + 1] = data[i + 1] * darkenFactor; // G
+          data[i + 2] = data[i + 2] * darkenFactor; // B
         }
-  
-        // 3. Tambahkan pola geometris tersembunyi
-        const patternSize = Math.min(canvas.width, canvas.height) / 32;
-        for (let y = 0; y < canvas.height; y += patternSize) {
-          for (let x = 0; x < canvas.width; x += patternSize) {
-            const pattern = (Math.sin(x * 0.1) + Math.cos(y * 0.1)) * 2;
-            const index = (Math.floor(y) * canvas.width + Math.floor(x)) * 4;
-            if (index < data.length - 4) {
-              data[index] = Math.min(255, Math.max(0, data[index] + pattern));
-              data[index + 1] = Math.min(255, Math.max(0, data[index + 1] + pattern * 0.7));
-              data[index + 2] = Math.min(255, Math.max(0, data[index + 2] + pattern * 0.5));
-            }
-          }
-        }
-  
         ctx.putImageData(imageData, 0, 0);
-  
-        // 4. Tambahkan watermark teks dengan opacity dan ukuran yang bervariasi
+
+        // 2. Tambahkan watermark teks dengan opacity yang lebih tinggi
         const watermarkText = "© Private Message JKT48";
-        const numWatermarks = Math.floor((canvas.width * canvas.height) / 40000);
+        const numWatermarks = Math.floor((canvas.width * canvas.height) / 30000); // Lebih banyak watermark
         
         for (let i = 0; i < numWatermarks; i++) {
           ctx.save();
@@ -437,47 +382,42 @@ function App() {
           const offsetY = Math.random() * canvas.height;
           ctx.translate(offsetX, offsetY);
           
-          // Rotasi acak dengan variasi yang lebih besar
+          // Rotasi acak
           const angle = (Math.random() - 0.5) * Math.PI;
           ctx.rotate(angle);
           
-          // Ukuran font yang bervariasi
-          const fontSize = Math.max(12, Math.floor(canvas.width / 40) + Math.random() * 8);
-          ctx.font = `${fontSize}px Arial`;
+          // Ukuran font yang lebih besar
+          const fontSize = Math.max(14, Math.floor(canvas.width / 35) + Math.random() * 8);
+          ctx.font = `bold ${fontSize}px Arial`;
           
-          // Opacity yang sangat bervariasi
-          const baseAlpha = 0.1 + Math.random() * 0.2;
-          ctx.globalAlpha = baseAlpha;
+          // Opacity yang lebih tinggi
+          ctx.globalAlpha = 0.3 + Math.random() * 0.2;
           
-          // Ambil warna lokal untuk adaptasi
-          const pixel = getPixelColor(offsetX, offsetY);
-          const contrast = (pixel.r + pixel.g + pixel.b) / 3 > 128 ? 0 : 255;
+          // Warna watermark yang lebih kontras
+          ctx.fillStyle = '#FFFFFF';
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = 2;
           
           // Tambahkan stroke untuk keterbacaan
-          ctx.strokeStyle = `rgba(${contrast}, ${contrast}, ${contrast}, ${baseAlpha * 0.8})`;
-          ctx.lineWidth = 0.5;
           ctx.strokeText(watermarkText, 0, 0);
-          
-          // Warna teks yang adaptif
-          ctx.fillStyle = `rgba(${255-contrast}, ${255-contrast}, ${255-contrast}, ${baseAlpha})`;
           ctx.fillText(watermarkText, 0, 0);
           
           ctx.restore();
         }
-  
-        // 5. Tambahkan pola mikroskopis
-        const microPattern = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const microData = microPattern.data;
-        for (let i = 0; i < microData.length; i += 16) {
-          const microNoise = Math.sin(i * 0.01) * 2;
-          if (i + 3 < microData.length) {
-            microData[i] = Math.min(255, Math.max(0, microData[i] + microNoise));
-            microData[i + 1] = Math.min(255, Math.max(0, microData[i + 1] + microNoise * 0.7));
-            microData[i + 2] = Math.min(255, Math.max(0, microData[i + 2] + microNoise * 0.5));
-          }
+
+        // 3. Tambahkan noise pattern untuk proteksi tambahan
+        const noiseData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const noise = noiseData.data;
+        const noiseIntensity = 10;
+
+        for (let i = 0; i < noise.length; i += 4) {
+          const noiseValue = (Math.random() - 0.5) * noiseIntensity;
+          noise[i] = Math.min(255, Math.max(0, noise[i] + noiseValue));
+          noise[i + 1] = Math.min(255, Math.max(0, noise[i + 1] + noiseValue));
+          noise[i + 2] = Math.min(255, Math.max(0, noise[i + 2] + noiseValue));
         }
-        ctx.putImageData(microPattern, 0, 0);
-  
+        ctx.putImageData(noiseData, 0, 0);
+
         resolve(canvas.toDataURL("image/png"));
       };
   
