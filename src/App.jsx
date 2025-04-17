@@ -24,7 +24,23 @@ const SortableDraft = ({ draft, index, globalIndex, handleEditDraft, handleDelet
     transition,
     opacity: isDragging ? 0.5 : 1,
     cursor: 'grab',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#2d2d2d',
+  };
+
+  // Fungsi untuk menghitung ukuran file dari data URL
+  const calculateFileSize = (dataUrl) => {
+    const base64Length = dataUrl.split(',')[1].length;
+    const fileSizeInBytes = Math.ceil((base64Length * 3) / 4);
+    return formatFileSize(fileSizeInBytes);
+  };
+
+  // Fungsi untuk memformat ukuran file
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   };
 
   // Tambahkan fungsi handleImageClick yang terpisah
@@ -39,25 +55,30 @@ const SortableDraft = ({ draft, index, globalIndex, handleEditDraft, handleDelet
       style={style}
       {...attributes}
       {...listeners}
-      className="p-4 rounded-xl border border-[#E5E7EB] flex flex-col h-full hover:border-[#6366F1] transition-colors duration-300"
+      className="p-4 rounded-xl border border-[#404040] flex flex-col h-full hover:border-[#6366F1] transition-colors duration-300"
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium text-[#4B5563] bg-[#F3F4F6] px-3 py-1 rounded-full">
+          <span className="text-sm font-medium text-[#E5E7EB] bg-[#404040] px-3 py-1 rounded-full">
             Draft {index + 1}
           </span>
+          {(draft.type === 'image' || draft.type === 'audio') && (
+            <span className="text-xs text-[#9CA3AF]">
+              {calculateFileSize(draft.message)}
+            </span>
+          )}
         </div>
         <div className="flex items-center space-x-1">
           <button
             onClick={() => handleEditDraft(globalIndex)}
-            className="p-1.5 text-[#6366F1] hover:bg-[#F3F4F6] rounded-md transition-colors duration-150"
+            className="p-1.5 text-[#6366F1] hover:bg-[#404040] rounded-md transition-colors duration-150"
             title="Edit"
           >
             <Edit2 size={16} />
           </button>
           <button
             onClick={() => handleDeleteDraft(globalIndex)}
-            className="p-1.5 text-[#EF4444] hover:bg-[#FEE2E2] rounded-md transition-colors duration-150"
+            className="p-1.5 text-[#EF4444] hover:bg-[#404040] rounded-md transition-colors duration-150"
             title="Delete"
           >
             <Trash2 size={16} />
@@ -66,13 +87,13 @@ const SortableDraft = ({ draft, index, globalIndex, handleEditDraft, handleDelet
       </div>
       {draft.type === 'image' ? (
         <div className="relative group cursor-pointer" onClick={handleImageClick}>
-          <div className="absolute top-2 right-2 bg-white/80 rounded-full p-1.5 shadow-sm">
+          <div className="absolute top-2 right-2 bg-[#2d2d2d]/80 rounded-full p-1.5 shadow-sm">
             <Image size={14} className="text-[#6366F1]" />
           </div>
           <img
             src={draft.message}
             alt="Uploaded"
-            className="w-full h-48 object-contain rounded-lg bg-[#F9FAFB]"
+            className="w-full h-48 object-contain rounded-lg bg-[#1a1a1a]"
           />
           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 rounded-lg flex items-center justify-center">
             <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white bg-black bg-opacity-50 px-3 py-1.5 rounded-lg text-sm flex items-center space-x-2">
@@ -83,7 +104,7 @@ const SortableDraft = ({ draft, index, globalIndex, handleEditDraft, handleDelet
         </div>
       ) : draft.type === 'audio' ? (
         <div className="relative">
-          <div className="absolute top-2 right-2 bg-white/80 rounded-full p-1.5 shadow-sm">
+          <div className="absolute top-2 right-2 bg-[#2d2d2d]/80 rounded-full p-1.5 shadow-sm">
             <Mic size={14} className="text-[#6366F1]" />
           </div>
           <audio
@@ -94,10 +115,10 @@ const SortableDraft = ({ draft, index, globalIndex, handleEditDraft, handleDelet
         </div>
       ) : (
         <div className="relative">
-          <div className="absolute top-2 right-2 bg-white/80 rounded-full p-1.5 shadow-sm">
+          <div className="absolute top-2 right-2 bg-[#2d2d2d]/80 rounded-full p-1.5 shadow-sm">
             <FileText size={14} className="text-[#6366F1]" />
           </div>
-          <p className="text-sm text-[#4B5563] bg-[#F9FAFB] p-4 rounded-lg">
+          <p className="text-sm text-[#E5E7EB] bg-[#1a1a1a] p-4 rounded-lg">
             {draft.message}
           </p>
         </div>
@@ -128,6 +149,7 @@ function App() {
   const [sendProgress, setSendProgress] = useState({ sent: 0, total: 0 });
   const [crop, setCrop] = useState({ unit: '%', x: 25, y: 25, width: 50, height: 50 });
   const [completedCrop, setCompletedCrop] = useState(null);
+  const [aspectRatio, setAspectRatio] = useState(null); // Tambahkan state untuk aspect ratio
   const imgRef = useRef(null);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [isOcrLoading, setIsOcrLoading] = useState(false);
@@ -198,6 +220,15 @@ function App() {
     'Reggie': 'https://discord.com/api/webhooks/1298894153710702623/XZREV-5yW7AXSctcVSJEjLxWSNNvfO9gJepPOvJmC92rUqbDPKd_gXrCnCQcYv8JA8cF',
     'Ribka': 'https://discord.com/api/webhooks/1298528906474946631/Nj5nLuBGxYJVgSZYt7B78hld0NMVZwpv4T__2LsA1ZygMoyxYsmsLMqXRabvL3WUDi37',
     'Trisha': 'https://discord.com/api/webhooks/1298527442448945234/9uOXWjrJfLs-CZ7VWWnublbKaS_zjCFQXHLbLlRyOnLZkvzO5-3WHeMzUNi2nP7vQ0zZ',
+    'Aprili': 'https://discord.com/api/webhooks/1362451593072480417/bIZfGVniztyBtyyvLCOMqw88pYZXZmy-VXXS5h_bPbu9DuntDokUIRz1sgzVJgsyx1iq',
+    'Auwia': 'https://discord.com/api/webhooks/1362451834261737647/SmpSiztQ87WO_7ZFAhvLV6VfO10rMFpnPZVaccbsXSCaDgPyD9_lz2x9EeiKN_2HXJrI',
+    'Ekin': 'https://discord.com/api/webhooks/1362451928860201142/BPDUQ4v22K-l-lMTLgsam13_kuhz05V7YYn6K0dOQMIVtFHACgqXhJ9RZO5ojjulvfAZ',
+    'Intan': 'https://discord.com/api/webhooks/1362452037547196477/AI_eFae1HKiS5kXPgyemxTfnmiqn9R9zJuNfyTZ0Kltb_5D5GVewB76N1-27UeoJu27j',
+    'Jemima': 'https://discord.com/api/webhooks/1362452132132819126/y9pZ_8QKUtfilMkgkEDsrQYoyTPiAJwRVwpByCLFNWAuWJtnQAaU-qLNmL6En-ESKKSZ',
+    'Maira': 'https://discord.com/api/webhooks/1362452227507224616/QpGw6xNMEWPqBPNzofyVHJMaJOQkJ9WjFcHF3ogYOEvhasKLpyNABDmTusX8fpYgPIZW',
+    'Mikaela': 'https://discord.com/api/webhooks/1362452311334584473/zcVELeDgrUJoUECZ4LK8gapNziyhMG52_867-v1bffMZTK16l204pj5S2IPW4zAi_ZrA',
+    'Hagia': 'https://discord.com/api/webhooks/1362452395682168973/6VjsYUB5NLloS2gSdZmk113_azQ8XykdNSdWCI-liXbQRMjPK-FNt30Q76tqMVKWjWMN',
+    'Virgi': 'https://discord.com/api/webhooks/1362452475814350968/XjsIcFyIYuWruRlZ_SF-yiJs2WV75-GYSNRZZMAst7xzb7fMTF8td3KOE94U8J9OoEBM',
   };
 
   const logWebhookUrl = 'https://discord.com/api/webhooks/1351586329426919425/S5YADm0dDKr-RAsOMgDgIEpDnH7896vgxlnpmi_PuvAPytLqpXn33YsAJttSEKyfZgCq';
@@ -376,38 +407,41 @@ function App() {
     return new Blob([new Uint8Array(array)], { type: 'image/png' }); // Pastikan type adalah PNG
   };
 
-  // Fungsi handleDragEnter
+  // Fungsi handleDragEnter yang diperbarui
   const handleDragEnter = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
     if (!selectedWebhookUrl) {
-      alert('Please select a webhook before dragging files.');
+      alert('Silakan pilih webhook terlebih dahulu sebelum mengupload file.');
       return;
     }
     setIsDraggingOver(true);
   }, [selectedWebhookUrl]);
 
-  // Fungsi handleDragOver
+  // Fungsi handleDragOver yang diperbarui
   const handleDragOver = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!selectedWebhookUrl) {
-      return; // Tidak lakukan apa-apa jika webhook belum dipilih
-    }
-    setIsDraggingOver(true);
-  }, [selectedWebhookUrl]);
+  }, []);
 
-  // Fungsi handleDragLeave
+  // Fungsi handleDragLeave yang diperbarui
   const handleDragLeave = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!selectedWebhookUrl) {
-      return; // Tidak lakukan apa-apa jika webhook belum dipilih
-    }
-    if (e.currentTarget === e.target) {
+    // Periksa apakah mouse benar-benar meninggalkan container
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    
+    if (
+      x <= rect.left ||
+      x >= rect.right ||
+      y <= rect.top ||
+      y >= rect.bottom
+    ) {
       setIsDraggingOver(false);
     }
-  }, [selectedWebhookUrl]);
+  }, []);
 
   const addWatermark = (imageDataURL) => {
     return new Promise((resolve, reject) => {
@@ -423,50 +457,9 @@ function App() {
         // Gambar asli sebagai dasar
         ctx.drawImage(img, 0, 0);
   
-        // Langkah 1: Tambahkan watermark tak terlihat berbasis DCT
+        // 1. Tambahkan watermark tak terlihat berbasis DCT dengan pola yang lebih kompleks
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = imageData.data;
-  
-        // Sederhana DCT-based watermarking (modifikasi nilai frekuensi tengah)
-        const blockSize = 8; // Ukuran blok untuk DCT
-        const watermarkStrength = 10; // Kekuatan watermark tak terlihat
-        for (let y = 0; y < canvas.height; y += blockSize) {
-          for (let x = 0; x < canvas.width; x += blockSize) {
-            // Proses setiap blok 8x8
-            for (let by = 0; by < blockSize; by++) {
-              for (let bx = 0; bx < blockSize; bx++) {
-                const px = x + bx;
-                const py = y + by;
-                if (px < canvas.width && py < canvas.height) {
-                  const index = (py * canvas.width + px) * 4;
-                  // Modifikasi nilai piksel (contoh: komponen R saja)
-                  const freqMod = Math.sin((bx + by) * 0.5) * watermarkStrength;
-                  data[index] = Math.min(255, Math.max(0, data[index] + freqMod));
-                  data[index + 1] = Math.min(255, Math.max(0, data[index + 1] + freqMod * 0.5));
-                  data[index + 2] = Math.min(255, Math.max(0, data[index + 2] + freqMod * 0.3));
-                }
-              }
-            }
-          }
-        }
-  
-        // Langkah 2: Tambahkan penggelapan berbasis frekuensi yang lebih kompleks
-        for (let i = 0; i < data.length; i += 4) {
-          const x = (i / 4) % canvas.width;
-          const y = Math.floor((i / 4) / canvas.width);
-          // Kombinasi sinus dan cosinus untuk pola lebih kompleks
-          const freqFactor = (Math.sin(x * 0.05) + Math.cos(y * 0.05)) * 0.025 + 0.90; // 5-10% penggelapan
-          data[i] = data[i] * freqFactor;     // R
-          data[i + 1] = data[i + 1] * freqFactor; // G
-          data[i + 2] = data[i + 2] * freqFactor; // B
-        }
-        ctx.putImageData(imageData, 0, 0);
-  
-        // Langkah 3: Teks watermark
-        const watermarkText = "© Private Message JKT48";
-        const fontSize = Math.max(20, Math.floor(canvas.width / 50)); // Skalakan dengan lebar
-        ctx.font = `${fontSize}px Arial`;
-        ctx.textAlign = "center";
   
         // Fungsi untuk mendapatkan warna piksel lokal
         const getPixelColor = (x, y) => {
@@ -479,41 +472,111 @@ function App() {
           };
         };
   
-        // Tambahkan watermark dengan posisi acak penuh
-        const numWatermarks = Math.floor((canvas.width * canvas.height) / (50000)); // Densitas
+        // Pola DCT yang lebih kompleks dengan multiple frekuensi
+        const blockSize = 8;
+        const watermarkStrength = 8;
+        for (let y = 0; y < canvas.height; y += blockSize) {
+          for (let x = 0; x < canvas.width; x += blockSize) {
+            for (let by = 0; by < blockSize; by++) {
+              for (let bx = 0; bx < blockSize; bx++) {
+                const px = x + bx;
+                const py = y + by;
+                if (px < canvas.width && py < canvas.height) {
+                  const index = (py * canvas.width + px) * 4;
+                  // Gunakan multiple sinusoidal patterns
+                  const freqMod = (
+                    Math.sin((bx + by) * 0.5) * 0.4 +
+                    Math.cos((bx - by) * 0.3) * 0.3 +
+                    Math.sin((bx * by) * 0.2) * 0.3
+                  ) * watermarkStrength;
+                  
+                  // Modifikasi setiap channel warna secara berbeda
+                  data[index] = Math.min(255, Math.max(0, data[index] + freqMod * 1.2));
+                  data[index + 1] = Math.min(255, Math.max(0, data[index + 1] + freqMod * 0.8));
+                  data[index + 2] = Math.min(255, Math.max(0, data[index + 2] + freqMod * 0.6));
+                }
+              }
+            }
+          }
+        }
+  
+        // 2. Tambahkan noise pattern yang halus
+        for (let i = 0; i < data.length; i += 4) {
+          const noise = (Math.random() - 0.5) * 3;
+          data[i] = Math.min(255, Math.max(0, data[i] + noise));
+          data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise));
+          data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise));
+        }
+  
+        // 3. Tambahkan pola geometris tersembunyi
+        const patternSize = Math.min(canvas.width, canvas.height) / 32;
+        for (let y = 0; y < canvas.height; y += patternSize) {
+          for (let x = 0; x < canvas.width; x += patternSize) {
+            const pattern = (Math.sin(x * 0.1) + Math.cos(y * 0.1)) * 2;
+            const index = (Math.floor(y) * canvas.width + Math.floor(x)) * 4;
+            if (index < data.length - 4) {
+              data[index] = Math.min(255, Math.max(0, data[index] + pattern));
+              data[index + 1] = Math.min(255, Math.max(0, data[index + 1] + pattern * 0.7));
+              data[index + 2] = Math.min(255, Math.max(0, data[index + 2] + pattern * 0.5));
+            }
+          }
+        }
+  
+        ctx.putImageData(imageData, 0, 0);
+  
+        // 4. Tambahkan watermark teks dengan opacity dan ukuran yang bervariasi
+        const watermarkText = "© Private Message JKT48";
+        const numWatermarks = Math.floor((canvas.width * canvas.height) / 40000);
+        
         for (let i = 0; i < numWatermarks; i++) {
           ctx.save();
-  
-          // Posisi acak penuh
+          
+          // Posisi acak
           const offsetX = Math.random() * canvas.width;
           const offsetY = Math.random() * canvas.height;
           ctx.translate(offsetX, offsetY);
-  
-          // Rotasi acak antara -60 dan 60 derajat
-          const angle = (Math.random() - 0.5) * (2 * Math.PI / 3);
+          
+          // Rotasi acak dengan variasi yang lebih besar
+          const angle = (Math.random() - 0.5) * Math.PI;
           ctx.rotate(angle);
-  
-          // Ambil warna piksel lokal
+          
+          // Ukuran font yang bervariasi
+          const fontSize = Math.max(12, Math.floor(canvas.width / 40) + Math.random() * 8);
+          ctx.font = `${fontSize}px Arial`;
+          
+          // Opacity yang sangat bervariasi
+          const baseAlpha = 0.1 + Math.random() * 0.2;
+          ctx.globalAlpha = baseAlpha;
+          
+          // Ambil warna lokal untuk adaptasi
           const pixel = getPixelColor(offsetX, offsetY);
-          const alphaVariation = Math.random() * 0.1; // Variasi acak pada alpha
-          const alpha = pixel.intensity < 128 ? 0.25 + alphaVariation : 0.35 + alphaVariation;
-          ctx.globalAlpha = alpha;
-  
-          // Sesuaikan warna teks agar sangat mirip dengan piksel lokal
-          const blendedColor = {
-            r: Math.min(255, Math.max(0, pixel.r + (pixel.intensity < 128 ? 10 : -10))),
-            g: Math.min(255, Math.max(0, pixel.g + (pixel.intensity < 128 ? 10 : -10))),
-            b: Math.min(255, Math.max(0, pixel.b + (pixel.intensity < 128 ? 10 : -10)))
-          };
-          ctx.fillStyle = `rgba(${blendedColor.r}, ${blendedColor.g}, ${blendedColor.b}, ${alpha})`;
-  
-          // Tambahkan teks watermark
+          const contrast = (pixel.r + pixel.g + pixel.b) / 3 > 128 ? 0 : 255;
+          
+          // Tambahkan stroke untuk keterbacaan
+          ctx.strokeStyle = `rgba(${contrast}, ${contrast}, ${contrast}, ${baseAlpha * 0.8})`;
+          ctx.lineWidth = 0.5;
+          ctx.strokeText(watermarkText, 0, 0);
+          
+          // Warna teks yang adaptif
+          ctx.fillStyle = `rgba(${255-contrast}, ${255-contrast}, ${255-contrast}, ${baseAlpha})`;
           ctx.fillText(watermarkText, 0, 0);
-  
+          
           ctx.restore();
         }
   
-        // Tidak ada noise, langsung resolve
+        // 5. Tambahkan pola mikroskopis
+        const microPattern = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const microData = microPattern.data;
+        for (let i = 0; i < microData.length; i += 16) {
+          const microNoise = Math.sin(i * 0.01) * 2;
+          if (i + 3 < microData.length) {
+            microData[i] = Math.min(255, Math.max(0, microData[i] + microNoise));
+            microData[i + 1] = Math.min(255, Math.max(0, microData[i + 1] + microNoise * 0.7));
+            microData[i + 2] = Math.min(255, Math.max(0, microData[i + 2] + microNoise * 0.5));
+          }
+        }
+        ctx.putImageData(microPattern, 0, 0);
+  
         resolve(canvas.toDataURL("image/png"));
       };
   
@@ -571,12 +634,23 @@ function App() {
     return new Promise((resolve, reject) => {
       const img = new window.Image();
       img.src = imageDataURL;
-  
+
       img.onload = () => {
+        // Hitung ukuran file dalam bytes
+        const base64Data = imageDataURL.split(',')[1];
+        const fileSizeInBytes = Math.ceil((base64Data.length * 3) / 4);
+        const fileSizeInMB = fileSizeInBytes / (1024 * 1024);
+
+        // Jika upscale 4x dan ukuran file > 7MB, tolak
+        if (factor === 4 && fileSizeInMB > 7) {
+          reject(new Error('Ukuran file melebihi batas 7MB untuk upscale 4x'));
+          return;
+        }
+
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         
-        // Set ukuran canvas sesuai faktor upscale (misalnya 2K)
+        // Set ukuran canvas sesuai faktor upscale
         canvas.width = img.width * factor;
         canvas.height = img.height * factor;
         
@@ -585,13 +659,23 @@ function App() {
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         
+        // Hitung sharpness strength berdasarkan ukuran gambar asli
+        const originalSize = img.width * img.height;
+        let sharpnessStrength = 0.3; // Default untuk gambar kecil
+
+        if (originalSize > 2000000) { // > 2MP
+          sharpnessStrength = 0.2;
+        } else if (originalSize > 1000000) { // > 1MP
+          sharpnessStrength = 0.25;
+        }
+        
         // Terapkan filter sharpening dengan kekuatan yang sudah disesuaikan
-        applySharpenFilter(canvas, ctx, 0.3); // Kekuatan sharpening 0.3
+        applySharpenFilter(canvas, ctx, sharpnessStrength);
         
         // Langsung resolve tanpa watermark
         resolve(canvas.toDataURL('image/png'));
       };
-  
+
       img.onerror = (error) => reject(error);
     });
   };
@@ -627,6 +711,9 @@ function App() {
           };
         } catch (error) {
           console.error(`Error upscaling image ${imageData.originalFile.name}:`, error);
+          if (error.message.includes('melebihi batas 7MB')) {
+            alert(`Gambar ${imageData.originalFile.name} tidak dapat di-upscale 4x karena ukuran file melebihi 7MB. Silakan pilih upscale 2x atau gunakan gambar dengan ukuran lebih kecil.`);
+          }
           return null;
         }
       });
@@ -634,14 +721,19 @@ function App() {
       const newDrafts = await Promise.all(upscalePromises);
       const validDrafts = newDrafts.filter(draft => draft !== null);
   
-      setDrafts((prevDrafts) => {
-        const existingIds = new Set(prevDrafts.map(draft => draft.id));
-        const uniqueNewDrafts = validDrafts.filter(draft => !existingIds.has(draft.id));
-        return [...prevDrafts, ...uniqueNewDrafts];
-      });
+      if (validDrafts.length === 0) {
+        alert('Tidak ada gambar yang berhasil di-upscale. Silakan coba lagi dengan pengaturan yang berbeda.');
+      } else {
+        setDrafts((prevDrafts) => {
+          const existingIds = new Set(prevDrafts.map(draft => draft.id));
+          const uniqueNewDrafts = validDrafts.filter(draft => !existingIds.has(draft.id));
+          return [...prevDrafts, ...uniqueNewDrafts];
+        });
+      }
   
     } catch (error) {
       console.error('Error during upscale process:', error);
+      alert('Terjadi kesalahan saat memproses upscale. Silakan coba lagi.');
     } finally {
       setIsUpscaleModalOpen(false);
       setPendingImages([]);
@@ -649,64 +741,127 @@ function App() {
       setIsUpscaling(false);
     }
   };
-// Fungsi handleDrop yang dimodifikasi untuk menambahkan watermark
-// Fungsi handleDrop yang dimodifikasi
-const handleDrop = async (event) => {
-  event.preventDefault();
-  if (!selectedWebhookUrl) {
-    setIsDraggingOver(false);
-    alert('Please select a webhook before dropping files.');
-    return;
-  }
-  setIsDraggingOver(false);
 
-  const files = Array.from(event.dataTransfer.files);
-  const imageFiles = files.filter(file => file.type.startsWith('image/'));
+  const handleSkip = async () => {
+    if (isUpscaling || pendingImages.length === 0) {
+      return;
+    }
 
-  if (imageFiles.length > 0) {
-    const imagePromises = imageFiles.map(file => {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve({
-          dataURL: reader.result,
-          originalFile: file
-        });
-        reader.readAsDataURL(file);
+    setIsUpscaling(true);
+
+    try {
+      const skipPromises = pendingImages.map(async (imageData) => {
+        try {
+          const draftId = md5(`${imageData.originalFile.name}-${imageData.originalFile.size}`);
+          
+          // Cek apakah draft sudah ada
+          const isDuplicate = drafts.some(draft => draft.id === draftId);
+          if (isDuplicate) {
+            return null;
+          }
+
+          // Tambahkan watermark ke gambar asli
+          const watermarkedImage = await addWatermark(imageData.dataURL);
+
+          return {
+            id: draftId,
+            webhookName: selectedWebhookName,
+            message: watermarkedImage, // Versi dengan watermark untuk webhook
+            originalMessage: imageData.dataURL, // Versi asli tanpa watermark untuk backup
+            type: 'image',
+          };
+        } catch (error) {
+          console.error(`Error processing image ${imageData.originalFile.name}:`, error);
+          return null;
+        }
       });
-    });
 
-    const imageData = await Promise.all(imagePromises);
-    
-    // Simpan semua gambar ke state dan buka modal
-    setPendingImages(imageData);
-    setIsUpscaleModalOpen(true);
-  }
+      const newDrafts = await Promise.all(skipPromises);
+      const validDrafts = newDrafts.filter(draft => draft !== null);
 
-  // Handle non-image files (audio) seperti sebelumnya
-  const nonImageDrafts = await Promise.all(
-    files.filter(file => !file.type.startsWith('image/')).map(async (file) => {
-      if (file.type.startsWith('audio/')) {
-        const reader = new FileReader();
-        const messageContent = await new Promise((resolve) => {
-          reader.onload = () => resolve(reader.result);
-          reader.readAsDataURL(file);
+      if (validDrafts.length === 0) {
+        alert('Tidak ada gambar yang berhasil diproses. Silakan coba lagi.');
+      } else {
+        setDrafts((prevDrafts) => {
+          const existingIds = new Set(prevDrafts.map(draft => draft.id));
+          const uniqueNewDrafts = validDrafts.filter(draft => !existingIds.has(draft.id));
+          return [...prevDrafts, ...uniqueNewDrafts];
         });
-        return {
-          id: md5(`${file.name}${Date.now()}`),
-          webhookName: selectedWebhookName,
-          message: messageContent,
-          type: 'audio',
-        };
       }
-      return null;
-    })
-  );
 
-  const validNonImageDrafts = nonImageDrafts.filter(draft => draft !== null);
-  if (validNonImageDrafts.length > 0) {
-    setDrafts((prevDrafts) => [...prevDrafts, ...validNonImageDrafts]);
-  }
-};
+    } catch (error) {
+      console.error('Error during skip process:', error);
+      alert('Terjadi kesalahan saat memproses gambar. Silakan coba lagi.');
+    } finally {
+      setIsUpscaleModalOpen(false);
+      setPendingImages([]);
+      setUpscaleFactor(2);
+      setIsUpscaling(false);
+    }
+  };
+
+  // Fungsi handleDrop yang diperbarui
+  const handleDrop = useCallback(async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    setIsDraggingOver(false);
+    
+    if (!selectedWebhookUrl) {
+      alert('Silakan pilih webhook terlebih dahulu sebelum mengupload file.');
+      return;
+    }
+
+    try {
+      const files = Array.from(event.dataTransfer.files);
+      const imageFiles = files.filter(file => file.type.startsWith('image/'));
+
+      if (imageFiles.length > 0) {
+        const imagePromises = imageFiles.map(file => {
+          return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve({
+              dataURL: reader.result,
+              originalFile: file
+            });
+            reader.readAsDataURL(file);
+          });
+        });
+
+        const imageData = await Promise.all(imagePromises);
+        setPendingImages(imageData);
+        setIsUpscaleModalOpen(true);
+      }
+
+      // Handle non-image files (audio)
+      const nonImageDrafts = await Promise.all(
+        files.filter(file => !file.type.startsWith('image/')).map(async (file) => {
+          if (file.type.startsWith('audio/')) {
+            const reader = new FileReader();
+            const messageContent = await new Promise((resolve) => {
+              reader.onload = () => resolve(reader.result);
+              reader.readAsDataURL(file);
+            });
+            return {
+              id: md5(`${file.name}${Date.now()}`),
+              webhookName: selectedWebhookName,
+              message: messageContent,
+              type: 'audio',
+            };
+          }
+          return null;
+        })
+      );
+
+      const validNonImageDrafts = nonImageDrafts.filter(draft => draft !== null);
+      if (validNonImageDrafts.length > 0) {
+        setDrafts(prevDrafts => [...prevDrafts, ...validNonImageDrafts]);
+      }
+    } catch (error) {
+      console.error('Error handling dropped files:', error);
+      alert('Terjadi kesalahan saat memproses file. Silakan coba lagi.');
+    }
+  }, [selectedWebhookUrl, selectedWebhookName]);
 
   const handleWebhookSelect = (url, name) => {
     setSelectedWebhookUrl(url);
@@ -1143,9 +1298,38 @@ const handleDrop = async (event) => {
     };
   }, [drafts.length]); // Dependensi pada drafts.length agar efek berjalan saat jumlah draft berubah
 
+  // Tambahkan useEffect untuk membersihkan event listeners
+  useEffect(() => {
+    const cleanup = () => {
+      setIsDraggingOver(false);
+    };
+
+    // Tambahkan event listener untuk membersihkan state saat user meninggalkan window
+    window.addEventListener('blur', cleanup);
+    window.addEventListener('beforeunload', cleanup);
+
+    return () => {
+      window.removeEventListener('blur', cleanup);
+      window.removeEventListener('beforeunload', cleanup);
+    };
+  }, []);
+
+  const handleRemoveAllDrafts = (webhookName) => {
+    if (confirm(`Apakah Anda yakin ingin menghapus semua draft untuk ${webhookName}?`)) {
+      setDrafts(prevDrafts => prevDrafts.filter(draft => draft.webhookName !== webhookName));
+    }
+  };
+
+  // Tambahkan fungsi untuk mengatur aspect ratio
+  const handleAspectRatioChange = (ratio) => {
+    setAspectRatio(ratio);
+    // Reset crop ketika aspect ratio berubah
+    setCrop({ unit: '%', x: 25, y: 25, width: 50, height: ratio ? 50 / ratio : 50 });
+  };
+
   return (
     <div
-      className="min-h-screen bg-[#F9FAFB] relative"
+      className="min-h-screen bg-[#1a1a1a] relative"
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -1170,8 +1354,8 @@ const handleDrop = async (event) => {
             {drafts.length === 0 ? (
               <div className="text-center py-20">
                 <div className="text-[#6366F1] text-6xl mb-4">📝</div>
-                <div className="text-[#4B5563] text-xl font-medium">No drafts yet</div>
-                <div className="text-[#6B7280] mt-2">Start by selecting a webhook and clicking "New Chat"</div>
+                <div className="text-[#E5E7EB] text-xl font-medium">No drafts yet</div>
+                <div className="text-[#9CA3AF] mt-2">Start by selecting a webhook and clicking "New Chat"</div>
               </div>
             ) : (
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -1182,21 +1366,30 @@ const handleDrop = async (event) => {
                   return (
                     <div
                       key={webhookName}
-                      className="bg-white p-6 rounded-xl border border-[#E5E7EB] mb-6 hover:border-[#6366F1] transition-colors duration-300"
+                      className="bg-[#2d2d2d] p-6 rounded-xl border border-[#404040] mb-6 hover:border-[#6366F1] transition-colors duration-300"
                     >
                       <div className="flex justify-between items-center mb-4">
                         <div className="flex items-center">
-                          <h3 className="text-lg font-semibold text-[#111827]">{webhookName}</h3>
-                          <span className="ml-3 text-sm text-[#6B7280] bg-[#F3F4F6] px-3 py-1 rounded-full">
+                          <h3 className="text-3xl font-bold text-[#E5E7EB]">{webhookName}</h3>
+                          <span className="ml-3 text-sm text-[#9CA3AF] bg-[#404040] px-3 py-1 rounded-full">
                             {draftsInGroup.length} draft{draftsInGroup.length !== 1 ? 's' : ''}
                           </span>
                         </div>
-                        <button
-                          onClick={() => toggleCollapse(webhookName)}
-                          className="text-[#6366F1] hover:text-[#4F46E5] focus:outline-none font-medium"
-                        >
-                          {isCollapsed ? 'Expand' : 'Collapse'}
-                        </button>
+                        <div className="flex items-center space-x-4">
+                          <button
+                            onClick={() => handleRemoveAllDrafts(webhookName)}
+                            className="text-[#EF4444] hover:text-[#DC2626] focus:outline-none font-medium flex items-center"
+                          >
+                            <Trash2 size={16} className="mr-1" />
+                            <span>Remove All</span>
+                          </button>
+                          <button
+                            onClick={() => toggleCollapse(webhookName)}
+                            className="text-[#6366F1] hover:text-[#4F46E5] focus:outline-none font-medium"
+                          >
+                            {isCollapsed ? 'Expand' : 'Collapse'}
+                          </button>
+                        </div>
                       </div>
                       {!isCollapsed && (
                         <SortableContext items={draftsInGroup.map((draft) => draft.id)} strategy={verticalListSortingStrategy}>
@@ -1241,42 +1434,42 @@ const handleDrop = async (event) => {
 
       <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-40 flex flex-col items-center space-y-2">
         <div className="flex space-x-4">
-        <button
-          onClick={backupImagesToDrive}
-          disabled={isBackingUp || drafts.length === 0 || !selectedWebhookUrl}
-          className={`bg-[#6366F1] text-white px-8 py-3 rounded-full font-medium transition-all duration-300 shadow-sm inline-flex items-center space-x-2 ${
-            isBackingUp || drafts.length === 0 || !selectedWebhookUrl
-              ? 'opacity-50 cursor-not-allowed bg-gray-400'
-              : 'hover:bg-[#4F46E5] hover:shadow-md active:transform active:scale-95'
-          }`}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 50 50"
-            width="20"
-            height="20"
-            className="fill-current"
+          <button
+            onClick={backupImagesToDrive}
+            disabled={isBackingUp || drafts.length === 0 || !selectedWebhookUrl}
+            className={`bg-[#6366F1] text-white px-8 py-3 rounded-full font-medium transition-all duration-300 shadow-sm inline-flex items-center space-x-2 ${
+              isBackingUp || drafts.length === 0 || !selectedWebhookUrl
+                ? 'opacity-50 cursor-not-allowed bg-gray-600'
+                : 'hover:bg-[#4F46E5] hover:shadow-md active:transform active:scale-95'
+            }`}
           >
-            <path d="M30.418,6H18.582c-0.724,0-1.392,0.391-1.745,1.023L3.423,30.988c-0.359,0.642-0.337,1.429,0.057,2.05l6.38,10.035 C10.228,43.65,10.864,44,11.548,44h25.903c0.684,0,1.321-0.35,1.688-0.927l6.38-10.035c0.395-0.621,0.417-1.408,0.057-2.05 L32.163,7.023C31.809,6.391,31.142,6,30.418,6z M30.41,8L43.3,31H32.61L20.65,8H30.41z M30.35,31H18.47l5.98-11.34L30.35,31z M5.16,31.97L18.49,8.19l4.84,9.31L10.92,41.01L5.16,31.97z M37.45,42H12.66l4.75-9h25.77L37.45,42z" />
-          </svg>
-          <span>
-            {isBackingUp
-              ? 'Backing Up...'
-              : drafts.length === 0
-              ? 'No Drafts'
-              : !selectedWebhookUrl
-              ? 'Select Webhook'
-              : 'Backup'}
-            {drafts.length > 0 && !isBackingUp && selectedWebhookUrl &&
-              ` (${drafts.filter(d => d.type === 'image').length})`}
-          </span>
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 50 50"
+              width="20"
+              height="20"
+              className="fill-current"
+            >
+              <path d="M30.418,6H18.582c-0.724,0-1.392,0.391-1.745,1.023L3.423,30.988c-0.359,0.642-0.337,1.429,0.057,2.05l6.38,10.035 C10.228,43.65,10.864,44,11.548,44h25.903c0.684,0,1.321-0.35,1.688-0.927l6.38-10.035c0.395-0.621,0.417-1.408,0.057-2.05 L32.163,7.023C31.809,6.391,31.142,6,30.418,6z M30.41,8L43.3,31H32.61L20.65,8H30.41z M30.35,31H18.47l5.98-11.34L30.35,31z M5.16,31.97L18.49,8.19l4.84,9.31L10.92,41.01L5.16,31.97z M37.45,42H12.66l4.75-9h25.77L37.45,42z" />
+            </svg>
+            <span>
+              {isBackingUp
+                ? 'Backing Up...'
+                : drafts.length === 0
+                ? 'No Drafts'
+                : !selectedWebhookUrl
+                ? 'Select Webhook'
+                : 'Backup'}
+              {drafts.length > 0 && !isBackingUp && selectedWebhookUrl &&
+                ` (${drafts.filter(d => d.type === 'image').length})`}
+            </span>
+          </button>
           <button
             onClick={handleSendClick}
             disabled={drafts.length === 0 || isSending || !selectedWebhookUrl}
             className={`bg-[#10B981] text-white px-8 py-3 rounded-full font-medium transition-all duration-300 shadow-sm inline-flex items-center space-x-2 ${
               drafts.length === 0 || isSending || !selectedWebhookUrl
-                ? 'opacity-50 cursor-not-allowed bg-gray-400'
+                ? 'opacity-50 cursor-not-allowed bg-gray-600'
                 : 'hover:bg-[#059669] hover:shadow-md active:transform active:scale-95'
             }`}
           >
@@ -1295,11 +1488,11 @@ const handleDrop = async (event) => {
         </div>
         {isBackingUp && (
           <div className="w-64">
-            <div className="text-gray-600 text-sm mb-1 flex items-center space-x-2">
+            <div className="text-[#9CA3AF] text-sm mb-1 flex items-center space-x-2">
               <Clock size={16} />
               <span>Backing up {backupProgress.backedUp} of {backupProgress.total} images...</span>
             </div>
-            <div className="w-full bg-[#E5E7EB] rounded-full h-2.5">
+            <div className="w-full bg-[#404040] rounded-full h-2.5">
               <div
                 className="bg-[#6366F1] h-2.5 rounded-full transition-all duration-300"
                 style={{ width: `${(backupProgress.backedUp / backupProgress.total) * 100}%` }}
@@ -1309,11 +1502,11 @@ const handleDrop = async (event) => {
         )}
         {isSending && (
           <div className="w-64">
-            <div className="text-gray-600 text-sm mb-1 flex items-center space-x-2">
+            <div className="text-[#9CA3AF] text-sm mb-1 flex items-center space-x-2">
               <Clock size={16} />
               <span>Sending {sendProgress.sent} of {sendProgress.total} drafts...</span>
             </div>
-            <div className="w-full bg-[#E5E7EB] rounded-full h-2.5">
+            <div className="w-full bg-[#404040] rounded-full h-2.5">
               <div
                 className="bg-[#10B981] h-2.5 rounded-full transition-all duration-300"
                 style={{ width: `${(sendProgress.sent / sendProgress.total) * 100}%` }}
@@ -1370,6 +1563,15 @@ const handleDrop = async (event) => {
                   disabled={isUpscaling}
                 >
                   Cancel
+                </button>
+                <button
+                  onClick={handleSkip}
+                  disabled={isUpscaling}
+                  className={`bg-[#9CA3AF] text-white px-4 py-2 rounded-lg transition-all duration-300 ${
+                    isUpscaling ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#6B7280]'
+                  }`}
+                >
+                  {isUpscaling ? 'Processing...' : 'Skip'}
                 </button>
                 <button
                   onClick={handleUpscaleConfirm}
@@ -1520,10 +1722,10 @@ const handleDrop = async (event) => {
       {
         isPreviewOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
-            <div className="relative bg-gray p-6 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="relative bg-[#2d2d2d] p-6 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <button
                 onClick={closePreviewModal}
-                className="absolute top-4 right-4 text-white hover:text-black transition-colors duration-300 z-10"
+                className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors duration-300 z-10"
               >
                 <X size={24} />
               </button>
@@ -1531,21 +1733,86 @@ const handleDrop = async (event) => {
               <div className="flex flex-col items-center">
                 <h2 className="text-xl font-bold text-white mb-4">Crop Image</h2>
                 
-                <div className="relative max-h-[70vh] w-full flex justify-center">
+                {/* Tambahkan pilihan aspect ratio */}
+                <div className="flex space-x-2 mb-4">
+                  <button
+                    onClick={() => handleAspectRatioChange(null)}
+                    className={`px-3 py-1 rounded ${
+                      aspectRatio === null
+                        ? 'bg-[#6366F1] text-white'
+                        : 'bg-[#404040] text-gray-300 hover:bg-[#505050]'
+                    }`}
+                  >
+                    Free
+                  </button>
+                  <button
+                    onClick={() => handleAspectRatioChange(1)}
+                    className={`px-3 py-1 rounded ${
+                      aspectRatio === 1
+                        ? 'bg-[#6366F1] text-white'
+                        : 'bg-[#404040] text-gray-300 hover:bg-[#505050]'
+                    }`}
+                  >
+                    1:1
+                  </button>
+                  <button
+                    onClick={() => handleAspectRatioChange(4/3)}
+                    className={`px-3 py-1 rounded ${
+                      aspectRatio === 4/3
+                        ? 'bg-[#6366F1] text-white'
+                        : 'bg-[#404040] text-gray-300 hover:bg-[#505050]'
+                    }`}
+                  >
+                    4:3
+                  </button>
+                  <button
+                    onClick={() => handleAspectRatioChange(16/9)}
+                    className={`px-3 py-1 rounded ${
+                      aspectRatio === 16/9
+                        ? 'bg-[#6366F1] text-white'
+                        : 'bg-[#404040] text-gray-300 hover:bg-[#505050]'
+                    }`}
+                  >
+                    16:9
+                  </button>
+                  <button
+                    onClick={() => handleAspectRatioChange(3/4)}
+                    className={`px-3 py-1 rounded ${
+                      aspectRatio === 3/4
+                        ? 'bg-[#6366F1] text-white'
+                        : 'bg-[#404040] text-gray-300 hover:bg-[#505050]'
+                    }`}
+                  >
+                    3:4
+                  </button>
+                  <button
+                    onClick={() => handleAspectRatioChange(9/16)}
+                    className={`px-3 py-1 rounded ${
+                      aspectRatio === 9/16
+                        ? 'bg-[#6366F1] text-white'
+                        : 'bg-[#404040] text-gray-300 hover:bg-[#505050]'
+                    }`}
+                  >
+                    9:16
+                  </button>
+                </div>
+                
+                <div className="relative w-full flex justify-center bg-[#1a1a1a] rounded-lg overflow-hidden">
                   <ReactCrop
                     crop={crop}
                     onChange={(_, percentCrop) => setCrop(percentCrop)}
                     onComplete={(c) => setCompletedCrop(c)}
-                    aspect={undefined} // Biarkan pengguna crop bebas, atau set nilai seperti 1 untuk rasio persegi
-                    className="max-h-[70vh]"
+                    aspect={aspectRatio}
+                    className="max-h-[60vh]"
                   >
                     <img
                       ref={imgRef}
                       src={previewImage}
                       alt="Image to crop"
-                      className="max-h-[70vh] w-auto object-contain rounded-lg"
+                      className="max-h-[60vh] w-auto"
+                      style={{ objectFit: 'contain' }}
                       onLoad={() => {
-                        setCompletedCrop(null); // Reset completedCrop saat gambar baru dimuat
+                        setCompletedCrop(null);
                       }}
                       onError={() => {
                         console.error('Failed to load image for cropping');
@@ -1558,17 +1825,17 @@ const handleDrop = async (event) => {
                 <div className="mt-6 flex space-x-4">
                   <button
                     onClick={closePreviewModal}
-                    className="px-6 py-2 text-white hover:text-black border border-gray-300 rounded-lg transition-colors duration-300"
+                    className="px-6 py-2 text-white hover:bg-[#404040] border border-[#404040] rounded-lg transition-colors duration-300"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleSaveCrop}
                     disabled={!completedCrop}
-                    className={`px-6 py-2 text-black rounded-lg transition-all duration-300 inline-flex items-center space-x-2 ${
+                    className={`px-6 py-2 rounded-lg transition-all duration-300 inline-flex items-center space-x-2 ${
                       completedCrop 
-                        ? 'bg-[#6366F1] hover:bg-[#4F46E5]' 
-                        : 'bg-[#E5E7EB] cursor-not-allowed'
+                        ? 'bg-[#6366F1] text-white hover:bg-[#4F46E5]' 
+                        : 'bg-[#404040] text-gray-400 cursor-not-allowed'
                     }`}
                   >
                     <CropIcon size={20} />

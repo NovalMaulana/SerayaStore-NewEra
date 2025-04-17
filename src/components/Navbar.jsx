@@ -66,7 +66,16 @@ function Navbar({ onWebhookSelect, onNewChat, onDelayChange, currentDelay }) {
     { id: 49, name: 'Ribka', url: 'https://discord.com/api/webhooks/1298528906474946631/Nj5nLuBGxYJVgSZYt7B78hld0NMVZwpv4T__2LsA1ZygMoyxYsmsLMqXRabvL3WUDi37', category: 'Generation 12' },
     { id: 50, name: 'Trisha', url: 'https://discord.com/api/webhooks/1298527442448945234/9uOXWjrJfLs-CZ7VWWnublbKaS_zjCFQXHLbLlRyOnLZkvzO5-3WHeMzUNi2nP7vQ0zZ', category: 'Generation 12' },
 
-    { id: 51, name: 'Gen', url: 'https', category: 'Generation 13' },
+    { id: 51, name: 'Aprili', url: 'https://discord.com/api/webhooks/1362451593072480417/bIZfGVniztyBtyyvLCOMqw88pYZXZmy-VXXS5h_bPbu9DuntDokUIRz1sgzVJgsyx1iq', category: 'Generation 13' },
+    { id: 52, name: 'Auwia', url: 'https://discord.com/api/webhooks/1362451834261737647/SmpSiztQ87WO_7ZFAhvLV6VfO10rMFpnPZVaccbsXSCaDgPyD9_lz2x9EeiKN_2HXJrI', category: 'Generation 13' },
+    { id: 53, name: 'Ekin', url: 'https://discord.com/api/webhooks/1362451928860201142/BPDUQ4v22K-l-lMTLgsam13_kuhz05V7YYn6K0dOQMIVtFHACgqXhJ9RZO5ojjulvfAZ', category: 'Generation 13' },
+    { id: 54, name: 'Intan', url: 'https://discord.com/api/webhooks/1362452037547196477/AI_eFae1HKiS5kXPgyemxTfnmiqn9R9zJuNfyTZ0Kltb_5D5GVewB76N1-27UeoJu27j', category: 'Generation 13' },
+    { id: 55, name: 'Jemima', url: 'https://discord.com/api/webhooks/1362452132132819126/y9pZ_8QKUtfilMkgkEDsrQYoyTPiAJwRVwpByCLFNWAuWJtnQAaU-qLNmL6En-ESKKSZ', category: 'Generation 13' },
+    { id: 56, name: 'Maira', url: 'https://discord.com/api/webhooks/1362452227507224616/QpGw6xNMEWPqBPNzofyVHJMaJOQkJ9WjFcHF3ogYOEvhasKLpyNABDmTusX8fpYgPIZW', category: 'Generation 13' },
+    { id: 57, name: 'Mikaela', url: 'https://discord.com/api/webhooks/1362452311334584473/zcVELeDgrUJoUECZ4LK8gapNziyhMG52_867-v1bffMZTK16l204pj5S2IPW4zAi_ZrA', category: 'Generation 13' },
+    { id: 58, name: 'Hagia', url: 'https://discord.com/api/webhooks/1362452395682168973/6VjsYUB5NLloS2gSdZmk113_azQ8XykdNSdWCI-liXbQRMjPK-FNt30Q76tqMVKWjWMN', category: 'Generation 13' },
+    { id: 59, name: 'Virgi', url: 'https://discord.com/api/webhooks/1362452475814350968/XjsIcFyIYuWruRlZ_SF-yiJs2WV75-GYSNRZZMAst7xzb7fMTF8td3KOE94U8J9OoEBM', category: 'Generation 13' },
+    
   ];
 
   const delayOptions = [3.5, 5, 6, 7]; // Opsi delay dalam detik
@@ -123,18 +132,18 @@ function Navbar({ onWebhookSelect, onNewChat, onDelayChange, currentDelay }) {
   }, {});
 
   return (
-<nav className="fixed top-0 left-0 w-full bg-white border-b border-[#E5E7EB] z-50">
+    <nav className="fixed top-0 left-0 w-full bg-[#1a1a1a] border-b border-[#404040] z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           {/* Logo Section */}
           <div className="flex items-center">
-            <span className="text-2xl font-bold text-[#111827]">
+            <span className="text-2xl font-bold text-[#E5E7EB]">
               Seraya Store
             </span>
           </div>
 
-            {/* Right Section */}
-            <div className="flex items-center space-x-4">
+          {/* Right Section */}
+          <div className="flex items-center space-x-4">
             {/* New Chat Button */}
             <button
               onClick={onNewChat}
@@ -152,7 +161,7 @@ function Navbar({ onWebhookSelect, onNewChat, onDelayChange, currentDelay }) {
             <div className="relative" ref={delayDropdownRef}>
               <button
                 onClick={() => setIsDelayDropdownOpen(!isDelayDropdownOpen)}
-                className="flex items-center space-x-2 text-[#4B5563] bg-[#F3F4F6] hover:bg-[#E5E7EB] px-6 py-2.5 rounded-md font-medium min-w-[140px] justify-between"
+                className="flex items-center space-x-2 text-[#E5E7EB] bg-[#2d2d2d] hover:bg-[#404040] px-6 py-2.5 rounded-md font-medium min-w-[140px] justify-between"
               >
                 <span>Delay: {currentDelay}s</span>
                 <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -160,15 +169,15 @@ function Navbar({ onWebhookSelect, onNewChat, onDelayChange, currentDelay }) {
                 </svg>
               </button>
               {isDelayDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-[140px] bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                <div className="absolute right-0 mt-2 w-[140px] bg-[#2d2d2d] border border-[#404040] rounded-md shadow-lg z-10">
                   {delayOptions.map((delay) => (
                     <button
                       key={delay}
                       onClick={() => handleDelaySelect(delay)}
-                      className={`block w-full text-left px-6 py-3 text-sm hover:bg-[#F3F4F6] transition-colors duration-150 ${
+                      className={`block w-full text-left px-6 py-3 text-sm hover:bg-[#404040] transition-colors duration-150 ${
                         delay === currentDelay 
-                          ? 'text-[#6366F1] font-semibold bg-[#F3F4F6]' 
-                          : 'text-[#4B5563]'
+                          ? 'text-[#6366F1] font-semibold bg-[#404040]' 
+                          : 'text-[#E5E7EB]'
                       }`}
                     >
                       {delay}s
@@ -178,11 +187,11 @@ function Navbar({ onWebhookSelect, onNewChat, onDelayChange, currentDelay }) {
               )}
             </div>
 
-{/* Dropdown Webhook Selector */}
-<div className="relative" ref={webhookDropdownRef}>
+            {/* Dropdown Webhook Selector */}
+            <div className="relative" ref={webhookDropdownRef}>
               <button
                 onClick={() => setIsWebhookDropdownOpen(!isWebhookDropdownOpen)}
-                className="flex items-center space-x-2 text-[#4B5563] bg-[#F3F4F6] hover:bg-[#E5E7EB] px-6 py-2.5 rounded-md font-medium min-w-[200px] justify-between"
+                className="flex items-center space-x-2 text-[#E5E7EB] bg-[#2d2d2d] hover:bg-[#404040] px-6 py-2.5 rounded-md font-medium min-w-[200px] justify-between"
               >
                 <span className="truncate">{selectedWebhook}</span>
                 <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -190,19 +199,19 @@ function Navbar({ onWebhookSelect, onNewChat, onDelayChange, currentDelay }) {
                 </svg>
               </button>
               {isWebhookDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-[280px] bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                <div className="absolute right-0 mt-2 w-[280px] bg-[#2d2d2d] border border-[#404040] rounded-md shadow-lg z-10">
                   {/* Search Input */}
-                  <div className="sticky top-0 p-2 bg-white border-b border-gray-200 z-10">
+                  <div className="sticky top-0 p-2 bg-[#2d2d2d] border-b border-[#404040] z-10">
                     <div className="relative">
                       <input
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search webhook..."
-                        className="w-full px-4 py-2 text-sm text-[#4B5563] bg-[#F3F4F6] rounded-md focus:outline-none focus:ring-2 focus:ring-[#6366F1] pl-9"
+                        className="w-full px-4 py-2 text-sm text-[#E5E7EB] bg-[#404040] rounded-md focus:outline-none focus:ring-2 focus:ring-[#6366F1] pl-9"
                       />
                       <svg 
-                        className="absolute left-3 top-2.5 w-4 h-4 text-[#6B7280]" 
+                        className="absolute left-3 top-2.5 w-4 h-4 text-[#9CA3AF]" 
                         fill="none" 
                         stroke="currentColor" 
                         viewBox="0 0 24 24"
@@ -222,14 +231,14 @@ function Navbar({ onWebhookSelect, onNewChat, onDelayChange, currentDelay }) {
                     {Object.entries(groupedFilteredWebhooks).map(([category, webhooksInCategory]) => (
                       webhooksInCategory.length > 0 && (
                         <div key={category}>
-                          <div className="sticky top-0 px-4 py-2 text-xs font-semibold text-[#6B7280] bg-[#F3F4F6] border-b border-[#E5E7EB]">
+                          <div className="sticky top-0 px-4 py-2 text-xs font-semibold text-[#9CA3AF] bg-[#404040] border-b border-[#404040]">
                             {category} ({webhooksInCategory.length})
                           </div>
                           {webhooksInCategory.map((webhook) => (
                             <button
                               key={webhook.id}
                               onClick={() => handleWebhookSelect(webhook)}
-                              className="block w-full text-left px-6 py-3 text-sm text-[#4B5563] hover:bg-[#F3F4F6] transition-colors duration-150"
+                              className="block w-full text-left px-6 py-3 text-sm text-[#E5E7EB] hover:bg-[#404040] transition-colors duration-150"
                             >
                               <span className="font-medium">{webhook.name.slice(0, searchQuery.length)}</span>
                               {webhook.name.slice(searchQuery.length)}
@@ -239,7 +248,7 @@ function Navbar({ onWebhookSelect, onNewChat, onDelayChange, currentDelay }) {
                       )
                     ))}
                     {filteredWebhooks.length === 0 && (
-                      <div className="px-6 py-4 text-sm text-[#6B7280] text-center">
+                      <div className="px-6 py-4 text-sm text-[#9CA3AF] text-center">
                         No webhooks found
                       </div>
                     )}
