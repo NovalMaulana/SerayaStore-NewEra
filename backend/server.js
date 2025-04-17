@@ -8,14 +8,14 @@ const app = express();
 app.use(express.json({ limit: '200mb' }));
 app.use(cors());
 
-// Inisialisasi GoogleAuth dengan credentials dari environment variable
+// Inisialisasi GoogleAuth dengan file service-account.json
 let auth;
 try {
-  const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
   auth = new GoogleAuth({
-    credentials,
+    keyFile: './service-account.json',
     scopes: ['https://www.googleapis.com/auth/drive'],
   });
+  console.log('Successfully initialized GoogleAuth with service account file');
 } catch (error) {
   console.error('Error initializing GoogleAuth:', error);
   throw error;
