@@ -3,84 +3,102 @@ const { drive_v3 } = require('@googleapis/drive');
 const { GoogleAuth } = require('google-auth-library');
 const cors = require('cors');
 const { Readable } = require('stream');
+const { google } = require('googleapis');
 const app = express();
 
 app.use(express.json({ limit: '200mb' }));
 app.use(cors());
 
-// Inisialisasi GoogleAuth dengan credentials dari environment variable
-let auth;
-console.log('Checking for GOOGLE_APPLICATION_CREDENTIALS_JSON:', !!process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
-if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
-  try {
-    const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
-    console.log('Successfully parsed credentials from environment variable');
-    auth = new GoogleAuth({
-      credentials,
-      scopes: ['https://www.googleapis.com/auth/drive'],
-    });
-  } catch (error) {
-    console.error('Error parsing credentials from environment variable:', error);
-    throw error;
-  }
-} else {
-  console.log('Using keyFile instead of environment variable');
-  auth = new GoogleAuth({
-    keyFile: './service-account.json',
-    scopes: ['https://www.googleapis.com/auth/drive'],
-  });
+// Validasi environment variable
+if (!process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+  throw new Error('GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable tidak ditemukan');
 }
 
-// Inisialisasi Drive dengan auth
-const drive = new drive_v3.Drive({ auth });
+// Inisialisasi autentikasi Google
+let auth;
+let drive;
+
+try {
+  const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+  
+  // Validasi kredensial yang diperlukan
+  const requiredFields = ['client_email', 'private_key', 'project_id'];
+  const missingFields = requiredFields.filter(field => !credentials[field]);
+  
+  if (missingFields.length > 0) {
+    throw new Error(`Kredensial tidak lengkap. Field yang hilang: ${missingFields.join(', ')}`);
+  }
+
+  auth = new GoogleAuth({
+    credentials,
+    scopes: ['https://www.googleapis.com/auth/drive.file']
+  });
+
+  // Inisialisasi Drive dengan auth
+  drive = new drive_v3.Drive({ auth });
+  
+  console.log('Google Drive API berhasil diinisialisasi');
+} catch (error) {
+  console.error('Error saat inisialisasi Google Auth:', error);
+  throw error;
+}
 
 // Fungsi untuk mencari atau membuat folder
 async function findOrCreateFolder(folderName, parentId = null) {
   try {
-    console.log(`Searching for folder '${folderName}'${parentId ? ` under parent ${parentId}` : ''}`);
+    console.log(`Mencari folder '${folderName}'${parentId ? ` di dalam folder ${parentId}` : ''}`);
+    
     const query = `name = '${folderName}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false${
       parentId ? ` and '${parentId}' in parents` : ''
     }`;
+    
     const response = await drive.files.list({
       q: query,
       fields: 'files(id, name, mimeType, trashed, parents)',
       spaces: 'drive',
     });
 
-    console.log(`API response for '${folderName}':`, JSON.stringify(response.data, null, 2));
+    console.log(`Hasil pencarian untuk folder '${folderName}':`, JSON.stringify(response.data, null, 2));
 
     const folder = response.data.files[0];
     if (folder) {
-      console.log(`Folder '${folderName}' found:`, folder);
+      console.log(`Folder '${folderName}' ditemukan:`, folder);
       return folder.id;
     }
 
+    console.log(`Folder '${folderName}' tidak ditemukan. Membuat folder baru...`);
+    
     const folderMetadata = {
       name: folderName,
       mimeType: 'application/vnd.google-apps.folder',
       ...(parentId && { parents: [parentId] }),
     };
+    
     const newFolder = await drive.files.create({
       resource: folderMetadata,
       fields: 'id',
     });
-    console.log(`New folder '${folderName}' created:`, newFolder.data);
+    
+    console.log(`Folder baru '${folderName}' berhasil dibuat:`, newFolder.data);
 
+    // Tambahkan permission untuk email yang ditentukan
     const permission = {
       type: 'user',
       role: 'writer',
-      emailAddress: 'sutopouw@gmail.com', // GANTI DENGAN EMAIL ANDA
+      emailAddress: process.env.GOOGLE_DRIVE_SHARE_EMAIL || 'sutopouw@gmail.com',
     };
+    
     await drive.permissions.create({
       fileId: newFolder.data.id,
       resource: permission,
     });
-    console.log(`Folder '${folderName}' shared with ${permission.emailAddress}`);
+    
+    console.log(`Folder '${folderName}' telah dibagikan ke ${permission.emailAddress}`);
 
     return newFolder.data.id;
   } catch (error) {
-    console.error(`Error in findOrCreateFolder for '${folderName}':`, error.message, error.stack);
-    throw new Error(`Failed to find or create folder '${folderName}': ${error.message}`);
+    console.error(`Error saat mengelola folder '${folderName}':`, error.message, error.stack);
+    throw new Error(`Gagal mencari atau membuat folder '${folderName}': ${error.message}`);
   }
 }
 
@@ -90,8 +108,8 @@ async function getOrCreateFolder(folderName) {
     const subFolderId = await findOrCreateFolder(folderName, parentFolderId);
     return subFolderId;
   } catch (error) {
-    console.error('Error in getOrCreateFolder:', error.message, error.stack);
-    throw new Error(`Failed to get or create folder: ${error.message}`);
+    console.error('Error saat mendapatkan atau membuat folder:', error.message, error.stack);
+    throw new Error(`Gagal mendapatkan atau membuat folder: ${error.message}`);
   }
 }
 
@@ -103,59 +121,85 @@ app.post('/backup', async (req, res) => {
   const { folderName, images } = req.body;
 
   if (!folderName || !images || images.length === 0) {
-    return res.status(400).json({ error: 'Missing folderName or images' });
+    return res.status(400).json({ 
+      error: 'Data tidak lengkap',
+      message: 'folderName dan images harus disediakan'
+    });
   }
 
   try {
+    console.log(`Memulai backup ${images.length} gambar ke folder '${folderName}'`);
     const folderId = await getOrCreateFolder(folderName);
     const uploadResults = [];
+    const errors = [];
 
     for (const image of images) {
       const { id, dataURL } = image;
 
       // Validasi dataURL
       if (!dataURL || typeof dataURL !== 'string' || !dataURL.includes(',')) {
-        console.error(`Invalid dataURL for image ${id}: ${dataURL}`);
-        continue; // Lewati gambar yang tidak valid
-      }
-
-      let blob;
-      try {
-        const base64Data = dataURL.split(',')[1];
-        if (!base64Data) {
-          console.error(`No base64 data found in dataURL for image ${id}`);
-          continue;
-        }
-        blob = Buffer.from(base64Data, 'base64');
-      } catch (error) {
-        console.error(`Error decoding dataURL for image ${id}: ${error.message}`);
+        const error = `Data gambar tidak valid untuk ID: ${id}`;
+        console.error(error);
+        errors.push({ id, error });
         continue;
       }
 
-      const stream = bufferToStream(blob);
-      const fileMetadata = {
-        name: `${id}-${Date.now()}.png`,
-        parents: [folderId],
-      };
-      const media = {
-        mimeType: 'image/png',
-        body: stream,
-      };
-      const result = await drive.files.create({
-        resource: fileMetadata,
-        media,
-        fields: 'id',
-      });
-      uploadResults.push({ id: image.id, driveId: result.data.id });
+      try {
+        const base64Data = dataURL.split(',')[1];
+        if (!base64Data) {
+          const error = `Data base64 tidak ditemukan untuk ID: ${id}`;
+          console.error(error);
+          errors.push({ id, error });
+          continue;
+        }
+
+        const blob = Buffer.from(base64Data, 'base64');
+        const stream = bufferToStream(blob);
+        
+        const fileMetadata = {
+          name: `${id}-${Date.now()}.png`,
+          parents: [folderId],
+        };
+        
+        const media = {
+          mimeType: 'image/png',
+          body: stream,
+        };
+        
+        const result = await drive.files.create({
+          resource: fileMetadata,
+          media,
+          fields: 'id',
+        });
+        
+        uploadResults.push({ id: image.id, driveId: result.data.id });
+        console.log(`Gambar ${id} berhasil di-backup ke Drive dengan ID: ${result.data.id}`);
+      } catch (error) {
+        console.error(`Error saat mengupload gambar ${id}:`, error);
+        errors.push({ id, error: error.message });
+      }
     }
 
-    res.json({ message: `Successfully backed up ${uploadResults.length} images`, results: uploadResults });
+    const response = {
+      message: `Berhasil backup ${uploadResults.length} dari ${images.length} gambar`,
+      results: uploadResults,
+    };
+
+    if (errors.length > 0) {
+      response.errors = errors;
+    }
+
+    res.json(response);
   } catch (error) {
-    console.error('Backup error:', error.message, error.stack);
-    res.status(500).json({ error: 'Failed to backup images', details: error.message });
+    console.error('Error saat backup:', error.message, error.stack);
+    res.status(500).json({ 
+      error: 'Gagal melakukan backup gambar', 
+      message: error.message 
+    });
   }
 });
 
-app.listen(3001, () => {
-  console.log('Backend running on http://localhost:3001');
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Server berjalan di http://localhost:${PORT}`);
 });
