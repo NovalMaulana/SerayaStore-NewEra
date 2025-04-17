@@ -71,16 +71,28 @@ async function findOrCreateFolder(folderName, parentId = null) {
     });
     console.log(`New folder '${folderName}' created:`, newFolder.data);
 
+    // Berikan akses publik ke folder
     const permission = {
-      type: 'user',
+      type: 'anyone',
       role: 'writer',
-      emailAddress: 'sutopouw@gmail.com', // GANTI DENGAN EMAIL ANDA
     };
     await drive.permissions.create({
       fileId: newFolder.data.id,
       resource: permission,
     });
-    console.log(`Folder '${folderName}' shared with ${permission.emailAddress}`);
+
+    // Berikan akses ke email spesifik
+    const userPermission = {
+      type: 'user',
+      role: 'owner',  // Ubah menjadi owner agar punya akses penuh
+      emailAddress: 'sutopouw@gmail.com',
+    };
+    await drive.permissions.create({
+      fileId: newFolder.data.id,
+      resource: userPermission,
+      transferOwnership: true,  // Transfer kepemilikan ke email
+    });
+    console.log(`Folder '${folderName}' shared with ${userPermission.emailAddress}`);
 
     return newFolder.data.id;
   } catch (error) {
