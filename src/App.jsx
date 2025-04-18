@@ -220,14 +220,14 @@ function App() {
     'Reggie': 'https://discord.com/api/webhooks/1298894153710702623/XZREV-5yW7AXSctcVSJEjLxWSNNvfO9gJepPOvJmC92rUqbDPKd_gXrCnCQcYv8JA8cF',
     'Ribka': 'https://discord.com/api/webhooks/1298528906474946631/Nj5nLuBGxYJVgSZYt7B78hld0NMVZwpv4T__2LsA1ZygMoyxYsmsLMqXRabvL3WUDi37',
     'Trisha': 'https://discord.com/api/webhooks/1298527442448945234/9uOXWjrJfLs-CZ7VWWnublbKaS_zjCFQXHLbLlRyOnLZkvzO5-3WHeMzUNi2nP7vQ0zZ',
-    'Aprili': 'https://discord.com/api/webhooks/1362451593072480417/bIZfGVniztyBtyyvLCOMqw88pYZXZmy-VXXS5h_bPbu9DuntDokUIRz1sgzVJgsyx1iq',
+    'Rilly': 'https://discord.com/api/webhooks/1362451593072480417/bIZfGVniztyBtyyvLCOMqw88pYZXZmy-VXXS5h_bPbu9DuntDokUIRz1sgzVJgsyx1iq',
     'Auwia': 'https://discord.com/api/webhooks/1362451834261737647/SmpSiztQ87WO_7ZFAhvLV6VfO10rMFpnPZVaccbsXSCaDgPyD9_lz2x9EeiKN_2HXJrI',
     'Ekin': 'https://discord.com/api/webhooks/1362451928860201142/BPDUQ4v22K-l-lMTLgsam13_kuhz05V7YYn6K0dOQMIVtFHACgqXhJ9RZO5ojjulvfAZ',
     'Intan': 'https://discord.com/api/webhooks/1362452037547196477/AI_eFae1HKiS5kXPgyemxTfnmiqn9R9zJuNfyTZ0Kltb_5D5GVewB76N1-27UeoJu27j',
     'Jemima': 'https://discord.com/api/webhooks/1362452132132819126/y9pZ_8QKUtfilMkgkEDsrQYoyTPiAJwRVwpByCLFNWAuWJtnQAaU-qLNmL6En-ESKKSZ',
     'Maira': 'https://discord.com/api/webhooks/1362452227507224616/QpGw6xNMEWPqBPNzofyVHJMaJOQkJ9WjFcHF3ogYOEvhasKLpyNABDmTusX8fpYgPIZW',
     'Mikaela': 'https://discord.com/api/webhooks/1362452311334584473/zcVELeDgrUJoUECZ4LK8gapNziyhMG52_867-v1bffMZTK16l204pj5S2IPW4zAi_ZrA',
-    'Hagia': 'https://discord.com/api/webhooks/1362452395682168973/6VjsYUB5NLloS2gSdZmk113_azQ8XykdNSdWCI-liXbQRMjPK-FNt30Q76tqMVKWjWMN',
+    'Giaa': 'https://discord.com/api/webhooks/1362452395682168973/6VjsYUB5NLloS2gSdZmk113_azQ8XykdNSdWCI-liXbQRMjPK-FNt30Q76tqMVKWjWMN',
     'Virgi': 'https://discord.com/api/webhooks/1362452475814350968/XjsIcFyIYuWruRlZ_SF-yiJs2WV75-GYSNRZZMAst7xzb7fMTF8td3KOE94U8J9OoEBM',
   };
 
