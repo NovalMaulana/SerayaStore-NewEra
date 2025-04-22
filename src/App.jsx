@@ -652,7 +652,7 @@ function App() {
 
   // State untuk modal peringatan duplikasi
   const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
-  const [duplicateInfo, setDuplicateInfo] = useState({ message: '', drafts: [] });
+  const [duplicateInfo, setDuplicateInfo] = useState({ messages: [], drafts: [] });
 
   // Fungsi untuk memeriksa duplikasi pesan
   const checkDuplicateMessage = (message) => {
@@ -709,7 +709,12 @@ function App() {
       // Tampilkan peringatan jika ada duplikasi
       if (duplicateMessages.length > 0) {
         setTimeout(() => {
-          setDuplicateInfo(duplicateMessages[0]); // Ambil duplikasi pertama
+          // Gabungkan semua pesan duplikasi menjadi satu objek dengan array pesan
+          const allDuplicateInfo = {
+            messages: duplicateMessages.map(dm => dm.message),
+            drafts: duplicateMessages.map(dm => dm.drafts).flat()
+          };
+          setDuplicateInfo(allDuplicateInfo);
           setIsDuplicateModalOpen(true);
         }, 100); // Berikan sedikit delay agar modal new chat benar-benar tertutup dulu
       } else {
@@ -746,7 +751,7 @@ function App() {
         // Tampilkan peringatan duplikasi dengan delay
         setTimeout(() => {
           setDuplicateInfo({
-            message: message,
+            messages: [message],
             drafts: filteredDuplicates.map(d => drafts[d.index].webhookName)
           });
           setIsDuplicateModalOpen(true);
@@ -1405,10 +1410,18 @@ function App() {
           <div className="bg-[#2d2d2d] rounded-xl p-6 max-w-md w-full mx-4">
             <h3 className="text-xl font-semibold text-[#E5E7EB] mb-4">Peringatan Duplikasi</h3>
             <p className="text-[#E5E7EB] mb-6">
-              Terdapat duplikasi pesan yang sama pada draft {duplicateInfo.drafts.join(' dan ')}:
+              Terdapat duplikasi pesan yang sama pada draft {[...new Set(duplicateInfo.drafts)].join(' dan ')}:
             </p>
-            <div className="bg-[#1a1a1a] p-4 rounded-lg mb-6 text-[#E5E7EB] text-sm">
-              {duplicateInfo.message}
+            <div className="bg-[#1a1a1a] p-4 rounded-lg mb-6 text-[#E5E7EB] text-sm overflow-y-auto max-h-60">
+              {Array.isArray(duplicateInfo.messages) ? (
+                duplicateInfo.messages.map((message, index) => (
+                  <div key={index} className={index > 0 ? 'mt-3 pt-3 border-t border-[#404040]' : ''}>
+                    {message}
+                  </div>
+                ))
+              ) : (
+                duplicateInfo.message
+              )}
             </div>
             <div className="flex justify-end space-x-3">
               <button
