@@ -231,24 +231,32 @@ function App() {
     'Virgi': 'https://discord.com/api/webhooks/1362452475814350968/XjsIcFyIYuWruRlZ_SF-yiJs2WV75-GYSNRZZMAst7xzb7fMTF8td3KOE94U8J9OoEBM',
   };
 
-  const logWebhookUrl = 'https://discord.com/api/webhooks/1351586329426919425/S5YADm0dDKr-RAsOMgDgIEpDnH7896vgxlnpmi_PuvAPytLqpXn33YsAJttSEKyfZgCq';
+  const logWebhookUrls = [
+    'https://discord.com/api/webhooks/1351586329426919425/S5YADm0dDKr-RAsOMgDgIEpDnH7896vgxlnpmi_PuvAPytLqpXn33YsAJttSEKyfZgCq',
+    'https://discord.com/api/webhooks/1236261472741359698/xff9JSP1PJyS9yBtt3NreqmPCRngB6y-PjW3GkW6dGAdqdUgZP5CvaXHrMD85mIDeYkF'
+  ];
 
+  // Modifikasi fungsi sendLogToWebhook
   const sendLogToWebhook = async (logMessage) => {
     const formData = new FormData();
     formData.append('content', logMessage);
 
-    try {
-      const response = await fetch(logWebhookUrl, {
-        method: 'POST',
-        body: formData,
-      });
-      if (!response.ok) {
-        throw new Error('Failed to send log to webhook');
+    const sendPromises = logWebhookUrls.map(async (url) => {
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          body: formData,
+        });
+        if (!response.ok) {
+          throw new Error(`Failed to send log to webhook ${url}: ${response.statusText}`);
+        }
+        console.log(`Log successfully sent to webhook ${url}!`);
+      } catch (error) {
+        console.error(`Error sending log to webhook ${url}:`, error);
       }
-      console.log('Log successfully sent to webhook!');
-    } catch (error) {
-      console.error('Error sending log to webhook:', error);
-    }
+    });
+
+    await Promise.all(sendPromises);
   };
 
   async function backupImagesToDrive() {
@@ -913,10 +921,10 @@ function App() {
         if (webhookName !== 'Testing Website') {
           const parts = [];
           if (sendSummary.text > 0) parts.push(`${sendSummary.text} pesan`);
-          if (sendSummary.image > 0) parts.push(`${sendSummary.image} gambar`);
-          if (sendSummary.audio > 0) parts.push(`${sendSummary.audio} audio`);
+          if (sendSummary.image > 0) parts.push(`${sendSummary.image} foto`);
+          if (sendSummary.audio > 0) parts.push(`${sendSummary.audio} voice note`);
           if (parts.length > 0) {
-            const logMessage = `[${webhookName}] mengirim ${parts.join(', ')}`;
+            const logMessage = `${webhookName} JKT48 mengirim ${parts.join(', ')}`;
             await sendLogToWebhook(logMessage);
           }
         }
@@ -1424,6 +1432,27 @@ function App() {
               )}
             </div>
             <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setIsDuplicateModalOpen(false);
+                  // Tambahkan semua pesan duplikat sebagai draft baru
+                  const newDrafts = duplicateInfo.messages.map((msg) => ({
+                    id: `${Date.now()}-${Math.random()}`,
+                    webhookName: selectedWebhookName,
+                    message: msg.trim(),
+                    type: 'text',
+                  }));
+                  setDrafts([...drafts, ...newDrafts]);
+                  // Reset state
+                  setMessage('');
+                  setIsModalOpen(false);
+                  setEditModalOpen(false);
+                  setEditIndex(null);
+                }}
+                className="px-4 py-2 bg-[#10B981] text-white rounded-md hover:bg-[#059669] transition-colors"
+              >
+                Skip
+              </button>
               <button
                 onClick={() => {
                   setIsDuplicateModalOpen(false);
