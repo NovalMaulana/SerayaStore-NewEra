@@ -650,18 +650,71 @@ function App() {
     }
   };
 
+  // State untuk modal peringatan duplikasi
+  const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
+  const [duplicateInfo, setDuplicateInfo] = useState({ message: '', drafts: [] });
+
+  // Fungsi untuk memeriksa duplikasi pesan
+  const checkDuplicateMessage = (message) => {
+    const duplicates = [];
+    
+    // Cari draft dengan pesan yang sama
+    drafts.forEach((draft, index) => {
+      if (draft.type === 'text' && draft.message.trim() === message.trim()) {
+        duplicates.push({
+          index,
+          webhookName: draft.webhookName
+        });
+      }
+    });
+    
+    return duplicates;
+  };
+
   const handleSaveDraft = () => {
     if (message.trim()) {
       const messages = message.split('\n').filter((msg) => msg.trim());
-      const newDrafts = messages.map((msg) => ({
-        id: `${Date.now()}-${Math.random()}`,
-        webhookName: selectedWebhookName,
-        message: msg,
-        type: 'text',
-      }));
-      setDrafts([...drafts, ...newDrafts]);
-      setMessage('');
+      const newDrafts = [];
+      const duplicateMessages = [];
+      
+      // Periksa setiap pesan untuk duplikasi
+      messages.forEach((msg) => {
+        const duplicates = checkDuplicateMessage(msg);
+        
+        if (duplicates.length > 0) {
+          // Tambahkan ke daftar pesan duplikat
+          duplicateMessages.push({
+            message: msg,
+            drafts: duplicates.map(d => drafts[d.index].webhookName)
+          });
+        } else {
+          // Tambahkan ke draft baru jika tidak ada duplikasi
+          newDrafts.push({
+            id: `${Date.now()}-${Math.random()}`,
+            webhookName: selectedWebhookName,
+            message: msg,
+            type: 'text',
+          });
+        }
+      });
+      
+      // Tambahkan draft baru ke daftar draft
+      if (newDrafts.length > 0) {
+        setDrafts([...drafts, ...newDrafts]);
+      }
+      
+      // Tutup modal new chat terlebih dahulu, lalu tampilkan peringatan jika ada duplikasi
       setIsModalOpen(false);
+      
+      // Tampilkan peringatan jika ada duplikasi
+      if (duplicateMessages.length > 0) {
+        setTimeout(() => {
+          setDuplicateInfo(duplicateMessages[0]); // Ambil duplikasi pertama
+          setIsDuplicateModalOpen(true);
+        }, 100); // Berikan sedikit delay agar modal new chat benar-benar tertutup dulu
+      } else {
+        setMessage('');
+      }
     } else {
       setIsModalOpen(false);
     }
@@ -680,12 +733,33 @@ function App() {
 
   const handleSaveEdit = () => {
     if (message.trim()) {
-      const updatedDrafts = [...drafts];
-      updatedDrafts[editIndex] = { ...updatedDrafts[editIndex], message, type: 'text' };
-      setDrafts(updatedDrafts);
-      setMessage('');
-      setEditModalOpen(false);
-      setEditIndex(null);
+      // Periksa duplikasi saat mengedit
+      const duplicates = checkDuplicateMessage(message);
+      
+      // Filter duplikasi yang bukan draft yang sedang diedit
+      const filteredDuplicates = duplicates.filter(d => d.index !== editIndex);
+      
+      if (filteredDuplicates.length > 0) {
+        // Tutup modal edit terlebih dahulu, lalu tampilkan peringatan duplikasi
+        setEditModalOpen(false);
+        
+        // Tampilkan peringatan duplikasi dengan delay
+        setTimeout(() => {
+          setDuplicateInfo({
+            message: message,
+            drafts: filteredDuplicates.map(d => drafts[d.index].webhookName)
+          });
+          setIsDuplicateModalOpen(true);
+        }, 100); // Berikan sedikit delay agar modal edit benar-benar tertutup dulu
+      } else {
+        // Simpan perubahan jika tidak ada duplikasi
+        const updatedDrafts = [...drafts];
+        updatedDrafts[editIndex] = { ...updatedDrafts[editIndex], message, type: 'text' };
+        setDrafts(updatedDrafts);
+        setMessage('');
+        setEditModalOpen(false);
+        setEditIndex(null);
+      }
     }
   };
 
@@ -1325,6 +1399,34 @@ function App() {
         )
       }
 
+      {/* Modal Peringatan Duplikasi */}
+      {isDuplicateModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-[#2d2d2d] rounded-xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-semibold text-[#E5E7EB] mb-4">Peringatan Duplikasi</h3>
+            <p className="text-[#E5E7EB] mb-6">
+              Terdapat duplikasi pesan yang sama pada draft {duplicateInfo.drafts.join(' dan ')}:
+            </p>
+            <div className="bg-[#1a1a1a] p-4 rounded-lg mb-6 text-[#E5E7EB] text-sm">
+              {duplicateInfo.message}
+            </div>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setIsDuplicateModalOpen(false);
+                  setMessage('');
+                  setIsModalOpen(false);
+                  setEditModalOpen(false);
+                }}
+                className="px-4 py-2 bg-[#6366F1] text-white rounded-md hover:bg-[#4F46E5] transition-colors"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {isSendConfirmOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
