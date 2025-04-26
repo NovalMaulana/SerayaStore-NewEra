@@ -924,7 +924,7 @@ function App() {
           if (sendSummary.image > 0) parts.push(`${sendSummary.image} foto`);
           if (sendSummary.audio > 0) parts.push(`${sendSummary.audio} voice note`);
           if (parts.length > 0) {
-            const logMessage = `${webhookName} JKT48 mengirim ${parts.join(', ')}`;
+            const logMessage = `**${webhookName} JKT48** mengirim ${parts.join(', ')}`;
             await sendLogToWebhook(logMessage);
           }
         }
@@ -962,10 +962,10 @@ function App() {
     setPreviewImage(imageUrl);
     setCrop({
       unit: '%',
-      x: 25,
-      y: 25,
-      width: 50,
-      height: 50,
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100
     });
     setCompletedCrop(null);
     setIsPreviewOpen(true);
@@ -1175,8 +1175,14 @@ function App() {
   // Tambahkan fungsi untuk mengatur aspect ratio
   const handleAspectRatioChange = (ratio) => {
     setAspectRatio(ratio);
-    // Reset crop ketika aspect ratio berubah
-    setCrop({ unit: '%', x: 25, y: 25, width: 50, height: ratio ? 50 / ratio : 50 });
+    // Reset crop ke full size ketika aspect ratio berubah
+    setCrop({ 
+      unit: '%', 
+      x: 0, 
+      y: 0, 
+      width: 100, 
+      height: ratio ? (100 / ratio) * (ratio < 1 ? ratio : 1) : 100 
+    });
   };
 
   return (
