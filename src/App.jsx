@@ -920,11 +920,24 @@ function App() {
         // Buat dan kirim log untuk webhook ini setelah semua draftnya selesai, kecuali untuk "Testing Website"
         if (webhookName !== 'Testing Website') {
           const parts = [];
-          if (sendSummary.text > 0) parts.push(`${sendSummary.text} pesan`);
-          if (sendSummary.image > 0) parts.push(`${sendSummary.image} foto`);
-          if (sendSummary.audio > 0) parts.push(`${sendSummary.audio} voice note`);
+          const messageTypes = [
+            { type: 'text', count: sendSummary.text, japanese: '文章' }, // 文章 untuk teks
+            { type: 'image', count: sendSummary.image, japanese: '画像' }, // 画像 untuk gambar
+            { type: 'audio', count: sendSummary.audio, japanese: '音声' } // 音声 untuk audio
+          ].filter(item => item.count > 0);
+        
+          // Acak urutan pesan
+          for (let i = messageTypes.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [messageTypes[i], messageTypes[j]] = [messageTypes[j], messageTypes[i]];
+          }
+        
+          messageTypes.forEach(item => {
+            parts.push(`${item.count} ${item.japanese}`);
+          });
+        
           if (parts.length > 0) {
-            const logMessage = `**${webhookName} JKT48** mengirim ${parts.join(', ')}`;
+            const logMessage = `**${webhookName} JKT48** 送信 ${parts.join('、')}`; // 送信 untuk "mengirim", '、' sebagai pemisah
             await sendLogToWebhook(logMessage);
           }
         }
@@ -1175,13 +1188,34 @@ function App() {
   // Tambahkan fungsi untuk mengatur aspect ratio
   const handleAspectRatioChange = (ratio) => {
     setAspectRatio(ratio);
-    // Reset crop ke full size ketika aspect ratio berubah
-    setCrop({ 
-      unit: '%', 
-      x: 0, 
-      y: 0, 
-      width: 100, 
-      height: ratio ? (100 / ratio) * (ratio < 1 ? ratio : 1) : 100 
+    if (!imgRef.current) return;
+    const img = imgRef.current;
+    const imgWidth = img.naturalWidth;
+    const imgHeight = img.naturalHeight;
+
+    let cropWidth, cropHeight;
+    if (!ratio) {
+      // Free mode: full size
+      cropWidth = 100;
+      cropHeight = 100;
+    } else {
+      const imgAspect = imgWidth / imgHeight;
+      if (imgAspect > ratio) {
+        // Gambar lebih lebar dari rasio: crop penuh tinggi, lebar menyesuaikan
+        cropHeight = 100;
+        cropWidth = 100 * ratio / imgAspect;
+      } else {
+        // Gambar lebih tinggi dari rasio: crop penuh lebar, tinggi menyesuaikan
+        cropWidth = 100;
+        cropHeight = 100 * imgAspect / ratio;
+      }
+    }
+    setCrop({
+      unit: '%',
+      x: (100 - cropWidth) / 2,
+      y: (100 - cropHeight) / 2,
+      width: cropWidth,
+      height: cropHeight
     });
   };
 
