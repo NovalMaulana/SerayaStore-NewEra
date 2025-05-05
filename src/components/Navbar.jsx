@@ -7,7 +7,7 @@ function Navbar({ onWebhookSelect, onNewChat, onDelayChange, currentDelay }) {
   const [searchQuery, setSearchQuery] = useState('');
 
   const webhooks = [
-    { id: 1, name: 'Testing Website', url: 'https://discord.com/api/webhooks/1366085476016062506/QXsMDNpnvXD0rRAyaUlTX7fE4lBl0xmMgCkY7t_rLqDqTaL9i2Yh0mwxUOIpKKSwyV7n', category: 'Testing' },
+    { id: 1, name: 'Testing Website', url: 'https://discord.com/api/webhooks/1368958364523958383/XmFTHwGMABq84TU2yWd3LTmCzGZcbM7IEFaY0hP41jTXNTJtYBszFSLS9A5jAAoMHbhj', category: 'Testing' },
 
     { id: 2, name: 'Feni', url: 'https://discord.com/api/webhooks/1239113110757838909/4LV2rSKeAKuTAvaNQU-qYzOd7WdjRtf1qwmLykefZ6WxiWOrnzdhwjyDBY-6QngasKg_', category: 'Generation 3' },
     { id: 3, name: 'Gracia', url: 'https://discord.com/api/webhooks/1239114098294394940/rOcMeGd_C5_eVltHUVqMIIZM178kL4Yd0cEAYt-hcqrZsFpcyHhuDiv8VF8I34vtXwCd', category: 'Generation 3' },
