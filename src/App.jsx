@@ -950,27 +950,30 @@ function App() {
           }
         }
   
-        // Buat dan kirim log untuk webhook ini setelah semua draftnya selesai, kecuali untuk "Testing Website"
-        if (webhookName !== 'Testing Website') {
-          const parts = [];
-          const messageTypes = [
-            { type: 'text', count: sendSummary.text, japanese: '文章' },
-            { type: 'image', count: sendSummary.image, japanese: '画像' },
-            { type: 'audio', count: sendSummary.audio, japanese: '音声' }
+        // Buat dan kirim log untuk webhook ini setelah semua draft selesai, kecuali untuk "Testing Website"
+        if (webhookName !== '') {
+          const bagian = [];
+          const tipePesan = [
+            { type: 'text', count: sendSummary.text, indonesian: 'pesan berupa teks' },
+            { type: 'image', count: sendSummary.image, indonesian: 'foto' },
+            { type: 'audio', count: sendSummary.audio, indonesian: 'voice note' }
           ].filter(item => item.count > 0);
-        
-          for (let i = messageTypes.length - 1; i > 0; i--) {
+
+          // Acak urutan tipe pesan
+          for (let i = tipePesan.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [messageTypes[i], messageTypes[j]] = [messageTypes[j], messageTypes[i]];
+            [tipePesan[i], tipePesan[j]] = [tipePesan[j], tipePesan[i]];
           }
-        
-          messageTypes.forEach(item => {
-            parts.push(`${item.count} ${item.japanese}`);
+
+          // Susun bagian pesan log
+          tipePesan.forEach(item => {
+            bagian.push(`${item.count} ${item.indonesian}`);
           });
-        
-          if (parts.length > 0) {
-            const logMessage = `**${webhookName} JKT48** 送信 ${parts.join('、')}`;
-            await sendLogToWebhook(logMessage);
+
+          // Kirim log jika ada pesan yang dikirim
+          if (bagian.length > 0) {
+            const pesanLog = `**${webhookName} JKT48** mengirim ${bagian.join(', ')}`;
+            await sendLogToWebhook(pesanLog);
           }
         }
       }
